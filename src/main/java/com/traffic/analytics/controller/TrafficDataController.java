@@ -59,6 +59,11 @@ public class TrafficDataController {
         return ResponseEntity.ok(analysisService.getTopBusiestRoads());
     }
 
+    @GetMapping("/least-roads")
+    public ResponseEntity<List<RoadTrafficSummaryDto>> getLeastBusiestRoads() {
+        return ResponseEntity.ok(analysisService.getLeastBusiestRoads());
+    }
+
     @GetMapping("/alerts")
     public ResponseEntity<List<TrafficAlertDto>> getTrafficAlerts() {
         return ResponseEntity.ok(alertService.getTrafficAlerts());

@@ -81,4 +81,35 @@ public class TrafficAnalysisService {
                 .limit(5)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Groups data by road, sorts using Merge Sort (descending), and returns the lowest 5 by reversing the order.
+     */
+    public List<RoadTrafficSummaryDto> getLeastBusiestRoads() {
+        List<TrafficData> data = repository.findAll();
+
+        if (data == null || data.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Map<String, Integer> trafficByRoad = data.stream()
+                .filter(d -> d.getRoadId() != null)
+                .collect(Collectors.groupingBy(
+                        TrafficData::getRoadId,
+                        Collectors.summingInt(TrafficData::getVehicleCount)
+                ));
+
+        List<RoadTrafficSummaryDto> summaries = trafficByRoad.entrySet().stream()
+                .map(entry -> new RoadTrafficSummaryDto(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+
+        List<RoadTrafficSummaryDto> sortedSummaries = sortingService.mergeSortSummaries(summaries);
+
+        // Since merge sort returns descending, we reverse to get Ascending (Least Busiest First)
+        java.util.Collections.reverse(sortedSummaries);
+        
+        return sortedSummaries.stream()
+                .limit(5)
+                .collect(Collectors.toList());
+    }
 }

@@ -34,5 +34,9 @@ yarn-error.log*
 Thumbs.db
 *.swp
 
+### Secrets & Configs ###
+application-secret.properties
+frontend/.env
+
 ### Custom ###
 *.db
