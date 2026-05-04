@@ -39,7 +39,7 @@ function App() {
   };
 
   const connectWebSocket = () => {
-    const socket = new SockJS('http://localhost:8080/ws-traffic');
+    const socket = new SockJS('/ws-traffic');
     const client = Stomp.over(socket);
     client.debug = () => {}; // disable debug logs
 
@@ -78,7 +78,7 @@ function App() {
             </div>
             <div>
               <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-                TraffixAI Premium
+                TraffixAI 
               </h1>
               <p className="text-slate-400 text-sm font-medium mt-1">Live TomTom Traffic Monitoring & Management</p>
             </div>

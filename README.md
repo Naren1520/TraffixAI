@@ -69,3 +69,5 @@ The frontend serves the user interface on `localhost:5173`.
 ## Tech Stack
 **Backend**: Java 17, Spring Boot 3, Spring Data JPA, H2 Database (In-Memory), Lombok, Spring WebSockets.  
 **Frontend**: React 18, Vite, Tailwind CSS v4, Recharts, Axios, SockJS / STOMP.
+
+- .\apache-maven-3.9.6\bin\mvn.cmd spring-boot:run

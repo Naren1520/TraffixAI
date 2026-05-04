@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: traffix-ai
+    env: docker
+    region: oregon 
+    plan: free
+    branch: main
+    envVars:
+      - key: VITE_TOMTOM_API_KEY
+        sync: false
+      - key: TOMTOM_API_KEY
+        sync: false
