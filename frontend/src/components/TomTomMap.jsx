@@ -65,12 +65,12 @@ const TomTomMap = ({ center }) => {
     }, [center, mapInstance]);
 
     return (
-        <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 backdrop-blur-xl h-full min-h-[400px] flex flex-col">
+        <div className="bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl h-full min-h-[400px] flex flex-col">
             <h3 className="text-xl font-bold mb-4 flex items-center space-x-2 text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#69f0ae]"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
               <span>Live Geographic Monitoring</span>
             </h3>
-            <div ref={mapElement} className="w-full grow rounded-xl overflow-hidden shadow-2xl border border-slate-700/50" style={{ height: '400px' }} />
+            <div ref={mapElement} className="w-full grow rounded-xl overflow-hidden shadow-2xl border border-[#333333]/50" style={{ height: '400px' }} />
         </div>
     );
 };
