@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface TrafficDataRepository extends JpaRepository<TrafficData, Long> {
     List<TrafficData> findByRoadId(String roadId);
+    List<TrafficData> findByRoadIdContainingIgnoreCase(String city);
     List<TrafficData> findByVehicleCountGreaterThanOrAvgSpeedLessThan(int vehicleCount, double avgSpeed);
 }

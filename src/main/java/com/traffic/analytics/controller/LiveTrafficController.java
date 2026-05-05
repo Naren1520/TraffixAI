@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 @RestController
 @RequestMapping("/api/live")
 @RequiredArgsConstructor
@@ -26,5 +28,14 @@ public class LiveTrafficController {
     public ResponseEntity<Map<String, String>> stopMonitoring() {
         monitorService.stopMonitoring();
         return ResponseEntity.ok(Map.of("message", "Real-time traffic monitoring stopped."));
+    }
+
+    @PostMapping("/location")
+    public ResponseEntity<Map<String, String>> setLocation(
+            @RequestParam String name, 
+            @RequestParam double lat, 
+            @RequestParam double lon) {
+        monitorService.updateLocation(name, lat, lon);
+        return ResponseEntity.ok(Map.of("message", "Monitoring location updated to " + name));
     }
 }

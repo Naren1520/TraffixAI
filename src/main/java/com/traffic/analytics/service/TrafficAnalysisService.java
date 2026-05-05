@@ -7,6 +7,7 @@ import com.traffic.analytics.repository.TrafficDataRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,15 +23,18 @@ public class TrafficAnalysisService {
     /**
      * Calculates the peak traffic hour.
      */
-    public Map<String, Object> getPeakTrafficHour() {
-        List<TrafficData> data = repository.findAll();
+    public Map<String, Object> getPeakTrafficHour(String city) {
+        List<TrafficData> data = (city != null && !city.isEmpty()) ? 
+                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();
 
         if (data == null || data.isEmpty()) {
             return Map.of("message", "No traffic data available");
         }
 
+        LocalDate today = LocalDate.now();
+
         Map<Integer, Integer> trafficByHour = data.stream()
-                .filter(d -> d.getTimestamp() != null)
+                .filter(d -> d.getTimestamp() != null && d.getTimestamp().toLocalDate().isEqual(today))
                 .collect(Collectors.groupingBy(
                         d -> d.getTimestamp().getHour(),
                         Collectors.summingInt(TrafficData::getVehicleCount)
@@ -57,8 +61,9 @@ public class TrafficAnalysisService {
     /**
      * Groups data by road, calculates total vehicles, sorts using Merge Sort, and returns top 5.
      */
-    public List<RoadTrafficSummaryDto> getTopBusiestRoads() {
-        List<TrafficData> data = repository.findAll();
+    public List<RoadTrafficSummaryDto> getTopBusiestRoads(String city) {
+        List<TrafficData> data = (city != null && !city.isEmpty()) ? 
+                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();
 
         if (data == null || data.isEmpty()) {
             return new ArrayList<>();
@@ -85,8 +90,9 @@ public class TrafficAnalysisService {
     /**
      * Groups data by road, sorts using Merge Sort (descending), and returns the lowest 5 by reversing the order.
      */
-    public List<RoadTrafficSummaryDto> getLeastBusiestRoads() {
-        List<TrafficData> data = repository.findAll();
+    public List<RoadTrafficSummaryDto> getLeastBusiestRoads(String city) {
+        List<TrafficData> data = (city != null && !city.isEmpty()) ? 
+                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();
 
         if (data == null || data.isEmpty()) {
             return new ArrayList<>();

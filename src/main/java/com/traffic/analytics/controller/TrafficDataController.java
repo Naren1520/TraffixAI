@@ -35,8 +35,8 @@ public class TrafficDataController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<TrafficDataDto>> getAllTrafficData() {
-        return ResponseEntity.ok(classificationService.classifyList(service.getAllTrafficData()));
+    public ResponseEntity<List<TrafficDataDto>> getAllTrafficData(@RequestParam(required = false) String city) {
+        return ResponseEntity.ok(classificationService.classifyList(service.getAllTrafficData(city)));
     }
 
     @GetMapping("/road/{roadId}")
@@ -45,27 +45,27 @@ public class TrafficDataController {
     }
 
     @GetMapping("/sorted")
-    public ResponseEntity<List<TrafficDataDto>> getSortedTrafficData() {
-        return ResponseEntity.ok(classificationService.classifyList(sortingService.getSortedTrafficData()));
+    public ResponseEntity<List<TrafficDataDto>> getSortedTrafficData(@RequestParam(required = false) String city) {
+        return ResponseEntity.ok(classificationService.classifyList(sortingService.getSortedTrafficData(city)));
     }
 
     @GetMapping("/peak-hours")
-    public ResponseEntity<Map<String, Object>> getPeakTrafficHours() {
-        return ResponseEntity.ok(analysisService.getPeakTrafficHour());
+    public ResponseEntity<Map<String, Object>> getPeakTrafficHours(@RequestParam(required = false) String city) {
+        return ResponseEntity.ok(analysisService.getPeakTrafficHour(city));
     }
 
     @GetMapping("/top-roads")
-    public ResponseEntity<List<RoadTrafficSummaryDto>> getTopBusiestRoads() {
-        return ResponseEntity.ok(analysisService.getTopBusiestRoads());
+    public ResponseEntity<List<RoadTrafficSummaryDto>> getTopBusiestRoads(@RequestParam(required = false) String city) {
+        return ResponseEntity.ok(analysisService.getTopBusiestRoads(city));
     }
 
     @GetMapping("/least-roads")
-    public ResponseEntity<List<RoadTrafficSummaryDto>> getLeastBusiestRoads() {
-        return ResponseEntity.ok(analysisService.getLeastBusiestRoads());
+    public ResponseEntity<List<RoadTrafficSummaryDto>> getLeastBusiestRoads(@RequestParam(required = false) String city) {
+        return ResponseEntity.ok(analysisService.getLeastBusiestRoads(city));
     }
 
     @GetMapping("/alerts")
-    public ResponseEntity<List<TrafficAlertDto>> getTrafficAlerts() {
-        return ResponseEntity.ok(alertService.getTrafficAlerts());
+    public ResponseEntity<List<TrafficAlertDto>> getTrafficAlerts(@RequestParam(required = false) String city) {
+        return ResponseEntity.ok(alertService.getTrafficAlerts(city));
     }
 }

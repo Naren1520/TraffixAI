@@ -34,8 +34,10 @@ public class TrafficDataService {
         return savedDto;
     }
 
-    public List<TrafficDataDto> getAllTrafficData() {
-        return repository.findAll().stream()
+    public List<TrafficDataDto> getAllTrafficData(String city) {
+        List<TrafficData> data = (city != null && !city.isEmpty()) ? 
+                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();
+        return data.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }

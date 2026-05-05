@@ -16,12 +16,19 @@ public class TrafficAlertService {
 
     private final TrafficDataRepository repository;
 
-    public List<TrafficAlertDto> getTrafficAlerts() {
+    public List<TrafficAlertDto> getTrafficAlerts(String city) {
         // Fetch all data where vehicleCount > 120 OR avgSpeed < 20
         List<TrafficData> triggeringData = repository.findByVehicleCountGreaterThanOrAvgSpeedLessThan(120, 20.0);
         List<TrafficAlertDto> alerts = new ArrayList<>();
 
         for (TrafficData data : triggeringData) {
+            // Filter by city if provided
+            if (city != null && !city.isEmpty() && data.getRoadId() != null) {
+                if (!data.getRoadId().toLowerCase().contains(city.toLowerCase())) {
+                    continue;
+                }
+            }
+
             StringJoiner reason = new StringJoiner(" & ");
             
             if (data.getVehicleCount() > 120) {

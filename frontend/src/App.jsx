@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Stomp } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { AlertCircle, Car, Play, Square, Activity, MapPin } from 'lucide-react';
+import { AlertCircle, Car, Play, Square, Activity, MapPin, Search } from 'lucide-react';
 import TomTomMap from './components/TomTomMap';
 
 function App() {
@@ -13,20 +13,29 @@ function App() {
   const [peakHour, setPeakHour] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [isMonitoring, setIsMonitoring] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mapCenter, setMapCenter] = useState([74.8427, 12.8711]); // Default Mangaluru
+  const [currentCity, setCurrentCity] = useState('Mangalore'); // Default current city
+  const currentCityRef = useRef(currentCity); // Ref to avoid stale closure in WebSocket
 
   useEffect(() => {
-    fetchInitialData();
+    currentCityRef.current = currentCity;
+  }, [currentCity]);
+
+  useEffect(() => {
+    fetchInitialData(currentCity);
     connectWebSocket();
   }, []);
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = async (cityName = '') => {
     try {
+      const qs = cityName ? `?city=${encodeURIComponent(cityName)}` : '';
       const [allRes, topRoadsRes, leastRoadsRes, peakRes, alertsRes] = await Promise.all([
-        axios.get('/api/traffic/all'),
-        axios.get('/api/traffic/top-roads'),
-        axios.get('/api/traffic/least-roads'),
-        axios.get('/api/traffic/peak-hours'),
-        axios.get('/api/traffic/alerts')
+        axios.get(`/api/traffic/all${qs}`),
+        axios.get(`/api/traffic/top-roads${qs}`),
+        axios.get(`/api/traffic/least-roads${qs}`),
+        axios.get(`/api/traffic/peak-hours${qs}`),
+        axios.get(`/api/traffic/alerts${qs}`)
       ]);
       setTrafficData(allRes.data.slice(-20)); // last 20 elements
       setTopRoads(topRoadsRes.data);
@@ -46,9 +55,13 @@ function App() {
     client.connect({}, () => {
       client.subscribe('/topic/traffic', (message) => {
         const newData = JSON.parse(message.body);
-        setTrafficData(prev => [...prev.slice(-19), newData]);
-        // Re-fetch aggregated data on updates
-        fetchInitialData();
+        
+        // Prevent cross-city data bleeding: Only process the socket message if it matches our CURRENT tracked city
+        if (newData.roadId && newData.roadId.toLowerCase().includes(currentCityRef.current.toLowerCase())) {
+          setTrafficData(prev => [...prev.slice(-19), newData]);
+          // Re-fetch aggregated data on updates using the latest city reference
+          fetchInitialData(currentCityRef.current);
+        }
       });
     });
   };
@@ -63,6 +76,40 @@ function App() {
       setIsMonitoring(!isMonitoring);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleLocationSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      // Using OpenStreetMap Nominatim for free geocoding to avoid TomTom API 403 Forbidden errors
+      const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`);
+      
+      if (response.data && response.data.length > 0) {
+        const { lat, lon } = response.data[0];
+        
+        // Format the user's exact search string nicely (e.g. "banglore" -> "Banglore") 
+        // instead of relying on OpenStreetMap's arbitrary internal subdivision names
+        const rawSearch = searchQuery.trim();
+        const cityName = rawSearch.charAt(0).toUpperCase() + rawSearch.slice(1).toLowerCase();
+        
+        setCurrentCity(cityName);
+        setMapCenter([parseFloat(lon), parseFloat(lat)]);
+
+        // 🚀 Notify the Java Backend to start pinging real traffic data for this new location!
+        await axios.post(`/api/live/location?name=${encodeURIComponent(cityName)}&lat=${lat}&lon=${lon}`);
+        
+        // Fetch new initial data specifically for this city
+        fetchInitialData(cityName);
+        
+      } else {
+        alert("Location not found. Please try a different search.");
+      }
+    } catch (error) {
+      console.error("Geocoding Error:", error);
+      alert("Error searching for location.");
     }
   };
 
@@ -84,17 +131,32 @@ function App() {
             </div>
           </div>
           
-          <button 
-            onClick={toggleMonitoring}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg ${
-              isMonitoring 
-                ? 'bg-rose-500/20 text-rose-400 border border-rose-500/50 hover:bg-rose-500/30 hover:shadow-rose-500/20' 
-                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30 hover:shadow-emerald-500/20'
-            }`}
-          >
-            {isMonitoring ? <Square className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
-            <span>{isMonitoring ? 'Stop Monitoring' : 'Start Live Monitoring'}</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            {/* Search Bar */}
+            <form onSubmit={handleLocationSearch} className="relative flex items-center">
+              <input
+                type="text"
+                placeholder="Search a place..."
+                className="bg-slate-800/80 border border-slate-700 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all w-64"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Search className="w-5 h-5 text-slate-500 absolute left-3" />
+              <button type="submit" className="hidden">Search</button>
+            </form>
+
+            <button 
+              onClick={toggleMonitoring}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg ${
+                isMonitoring 
+                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/50 hover:bg-rose-500/30 hover:shadow-rose-500/20' 
+                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30 hover:shadow-emerald-500/20'
+              }`}
+            >
+              {isMonitoring ? <Square className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+              <span>{isMonitoring ? 'Stop Monitoring' : 'Start Live Monitoring'}</span>
+            </button>
+          </div>
         </header>
 
         {/* Top Stats Grid */}
@@ -102,11 +164,11 @@ function App() {
           {/* Peak Hour Card */}
           <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 backdrop-blur-xl flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Peak Congestion</p>
+              <p className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Today's Peak Congestion</p>
               <h3 className="text-3xl font-bold text-white">
                 {peakHour?.peakHour !== undefined ? `${peakHour.peakHour % 12 || 12}:00 ${peakHour.peakHour >= 12 ? 'PM' : 'AM'}` : '--:--'}
               </h3>
-              <p className="text-indigo-400 text-sm mt-2 font-medium">System-detected worst hour</p>
+              <p className="text-indigo-400 text-sm mt-2 font-medium">Busiest hour since 12:00 AM</p>
             </div>
             <div className="bg-indigo-500/10 p-4 rounded-full">
               <Activity className="w-10 h-10 text-indigo-400" />
@@ -142,7 +204,7 @@ function App() {
 
         {/* Main Map + Data Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TomTomMap />
+          <TomTomMap center={mapCenter} />
           <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 backdrop-blur-xl">
             <h3 className="text-xl font-bold mb-6 flex items-center space-x-2">
               <Activity className="w-5 h-5 text-indigo-400" />
