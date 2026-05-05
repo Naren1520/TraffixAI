@@ -12,6 +12,7 @@
   "dependencies": {
     "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/vite": "^4.2.4",
+    "@tomtom-international/web-sdk-maps": "^6.25.0",
     "axios": "^1.15.2",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
