@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Stomp } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { AlertCircle, Car, Play, Square, Activity, MapPin, Search } from 'lucide-react';
+import Header from './components/Header';
 import TomTomMap from './components/TomTomMap';
 
 function App() {
@@ -98,7 +99,7 @@ function App() {
         setCurrentCity(cityName);
         setMapCenter([parseFloat(lon), parseFloat(lat)]);
 
-        // 🚀 Notify the Java Backend to start pinging real traffic data for this new location!
+        // ðŸš€ Notify the Java Backend to start pinging real traffic data for this new location!
         await axios.post(`/api/live/location?name=${encodeURIComponent(cityName)}&lat=${lat}&lon=${lon}`);
         
         // Fetch new initial data specifically for this city
@@ -114,50 +115,17 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-[#eaeaea] p-8 font-sans selection:bg-[#009688]/30">
+    <div className="min-h-screen bg-[#121212] text-[#eaeaea] p-4 md:p-8 font-sans selection:bg-[#009688]/30">
       {/* Header Container */}
-      <div className="max-w-7xl mx-auto basis-full flex flex-col space-y-8">
+      <div className="max-w-7xl mx-auto basis-full flex flex-col space-y-6 md:space-y-8">
         
-        <header className="flex justify-between items-center bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl">
-          <div className="flex items-center space-x-4">
-            <div className="bg-[#009688]/20 p-3 rounded-lg border border-[#009688]/30">
-              <Activity className="w-8 h-8 text-[#009688]" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#009688] to-[#69f0ae]">
-                TraffixAI 
-              </h1>
-              <p className="text-gray-300 text-sm font-medium mt-1">Live TomTom Traffic Monitoring & Management</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* Search Bar */}
-            <form onSubmit={handleLocationSearch} className="relative flex items-center">
-              <input
-                type="text"
-                placeholder="Search a place..."
-                className="bg-[#222222]/80 border border-[#333333] text-[#eaeaea] placeholder-slate-500 text-sm rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#009688] focus:border-transparent transition-all w-64"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Search className="w-5 h-5 text-gray-400 absolute left-3" />
-              <button type="submit" className="hidden">Search</button>
-            </form>
-
-            <button 
-              onClick={toggleMonitoring}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg ${
-                isMonitoring 
-                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/50 hover:bg-rose-500/30 hover:shadow-rose-500/20' 
-                  : 'bg-[#69f0ae]/20 text-[#69f0ae] border border-[#69f0ae]/50 hover:bg-[#69f0ae]/30 hover:shadow-[#69f0ae]/20'
-              }`}
-            >
-              {isMonitoring ? <Square className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
-              <span>{isMonitoring ? 'Stop Monitoring' : 'Start Live Monitoring'}</span>
-            </button>
-          </div>
-        </header>
+        <Header 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleLocationSearch={handleLocationSearch}
+          isMonitoring={isMonitoring}
+          toggleMonitoring={toggleMonitoring}
+        />
 
         {/* Top Stats Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -325,3 +293,5 @@ function App() {
 }
 
 export default App;
+
+
