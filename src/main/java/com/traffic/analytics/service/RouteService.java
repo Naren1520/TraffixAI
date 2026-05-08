@@ -4,7 +4,9 @@ import com.traffic.analytics.dto.RouteAnalysisDto;
 import com.traffic.analytics.dto.RouteRequestDto;
 import com.traffic.analytics.dto.RouteResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,17 +17,23 @@ public class RouteService {
     
     private final TrafficDataService trafficDataService;
     private final GeminiAiService geminiAiService;
+    private final RestTemplate restTemplate;
+    
+    @Value("${tomtom.api.key:}")
+    private String tomtomApiKey;
     
     public RouteResponseDto analyzeRoute(RouteRequestDto request) {
-        // Generate route alternatives
-        List<RouteAnalysisDto> routes = generateRoutes(request);
+        // Fetch only real routes from TomTom - no mock data
+        List<RouteAnalysisDto> routes = fetchTomTomRoutes(request);
         
-        // Find best route based on analysis
+        // Find best route based on score
         RouteAnalysisDto bestRoute = routes.stream()
             .max(Comparator.comparingDouble(RouteAnalysisDto::getRouteScore))
-            .orElse(routes.get(0));
+            .orElseThrow(() -> new RuntimeException("No valid routes available"));
         
-        // Get AI recommendation
+        bestRoute.setIsOptimal(true); // Mark the best route as optimal
+        
+        // Get AI recommendation from Gemini using real route data
         double congestionPercentage = calculateCongestionPercentage(bestRoute);
         String aiRecommendation = geminiAiService.getRouteRecommendation(
             request.getStartLocation(),
@@ -34,6 +42,8 @@ public class RouteService {
             congestionPercentage,
             bestRoute.getEstimatedDelay()
         );
+        
+        bestRoute.setRecommendation(aiRecommendation);
         
         return RouteResponseDto.builder()
             .startLocation(request.getStartLocation())
@@ -45,111 +55,95 @@ public class RouteService {
             .build();
     }
     
-    private List<RouteAnalysisDto> generateRoutes(RouteRequestDto request) {
+    private List<RouteAnalysisDto> fetchTomTomRoutes(RouteRequestDto request) {
+        if (tomtomApiKey == null || tomtomApiKey.isEmpty()) {
+            throw new RuntimeException("TomTom API key is not configured. Set TOMTOM_API_KEY environment variable.");
+        }
+        
+        List<String> routeTypes = List.of("fastest", "shortest", "eco");
         List<RouteAnalysisDto> routes = new ArrayList<>();
         
-        // Route 1: Direct route
-        routes.add(RouteAnalysisDto.builder()
-            .routeId("route_direct_" + System.currentTimeMillis())
-            .routeName("Direct Route")
-            .distance(calculateDistance(request.getStartLat(), request.getStartLon(), 
-                                       request.getEndLat(), request.getEndLon()))
-            .estimatedTime(45.0)
-            .estimatedDelay(analyzeTrafficDelay(request, "direct"))
-            .congestionLevel(classifyCongestion(analyzeTrafficDelay(request, "direct")))
-            .heavyTrafficZones(identifyHeavyTrafficZones(request))
-            .alternativeRoutes(List.of("Route A", "Route B"))
-            .routeScore(calculateRouteScore(analyzeTrafficDelay(request, "direct")))
-            .isOptimal(false)
-            .build());
+        for (String routeType : routeTypes) {
+            RouteAnalysisDto route = fetchTomTomRoute(request, routeType);
+            if (route != null) {
+                routes.add(route);
+            }
+        }
         
-        // Route 2: Alternative route avoiding main highway
-        routes.add(RouteAnalysisDto.builder()
-            .routeId("route_alt1_" + System.currentTimeMillis())
-            .routeName("Scenic Route (Via Local Roads)")
-            .distance(calculateDistance(request.getStartLat(), request.getStartLon(), 
-                                       request.getEndLat(), request.getEndLon()) * 1.15)
-            .estimatedTime(50.0)
-            .estimatedDelay(analyzeTrafficDelay(request, "alternate1"))
-            .congestionLevel(classifyCongestion(analyzeTrafficDelay(request, "alternate1")))
-            .heavyTrafficZones(List.of())
-            .alternativeRoutes(List.of("Route C", "Route D"))
-            .routeScore(calculateRouteScore(analyzeTrafficDelay(request, "alternate1")))
-            .isOptimal(true)
-            .build());
-        
-        // Route 3: Bypass route
-        routes.add(RouteAnalysisDto.builder()
-            .routeId("route_bypass_" + System.currentTimeMillis())
-            .routeName("Bypass Route (Longer but Faster)")
-            .distance(calculateDistance(request.getStartLat(), request.getStartLon(), 
-                                       request.getEndLat(), request.getEndLon()) * 1.25)
-            .estimatedTime(42.0)
-            .estimatedDelay(analyzeTrafficDelay(request, "bypass"))
-            .congestionLevel(classifyCongestion(analyzeTrafficDelay(request, "bypass")))
-            .heavyTrafficZones(List.of("MG Road intersection"))
-            .alternativeRoutes(List.of("Route E", "Route F"))
-            .routeScore(calculateRouteScore(analyzeTrafficDelay(request, "bypass")))
-            .isOptimal(false)
-            .build());
+        if (routes.isEmpty()) {
+            throw new RuntimeException("Failed to fetch routes from TomTom API. Please check your coordinates and TomTom API key.");
+        }
         
         return routes;
     }
     
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        // Haversine formula for distance calculation
-        final int R = 6371; // Radius of the earth in km
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Distance in km
-    }
-    
-    private double analyzeTrafficDelay(RouteRequestDto request, String routeType) {
-        // In production, this would analyze actual traffic data
-        // For now, returning simulated delays based on time of day
-        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        double baseDelay = 0;
-        
-        if (hour >= 8 && hour <= 10) { // Morning rush
-            baseDelay = routeType.equals("direct") ? 25 : (routeType.equals("alternate1") ? 8 : 15);
-        } else if (hour >= 17 && hour <= 19) { // Evening rush
-            baseDelay = routeType.equals("direct") ? 30 : (routeType.equals("alternate1") ? 10 : 18);
-        } else {
-            baseDelay = routeType.equals("direct") ? 5 : (routeType.equals("alternate1") ? 2 : 4);
+    @SuppressWarnings("unchecked")
+    private RouteAnalysisDto fetchTomTomRoute(RouteRequestDto request, String routeType) {
+        try {
+            String url = String.format(java.util.Locale.US,
+                "https://api.tomtom.com/routing/1/calculateRoute/%f,%f:%f,%f/json?travelMode=car&routeType=%s&traffic=true&computeTravelTimeFor=all&key=%s",
+                request.getStartLat(), request.getStartLon(),
+                request.getEndLat(), request.getEndLon(),
+                routeType,
+                tomtomApiKey
+            );
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            if (response == null) {
+                return null;
+            }
+            List<Map<String, Object>> tomTomRoutes = (List<Map<String, Object>>) response.get("routes");
+            if (tomTomRoutes == null || tomTomRoutes.isEmpty()) {
+                return null;
+            }
+            Map<String, Object> route = tomTomRoutes.get(0);
+            Map<String, Object> summary = (Map<String, Object>) route.get("summary");
+            if (summary == null) {
+                return null;
+            }
+            double lengthKm = ((Number) summary.get("lengthInMeters")).doubleValue() / 1000.0;
+            double travelTimeMin = ((Number) summary.get("travelTimeInSeconds")).doubleValue() / 60.0;
+            double delayMin = 0;
+            if (summary.containsKey("trafficDelayInSeconds")) {
+                delayMin = ((Number) summary.get("trafficDelayInSeconds")).doubleValue() / 60.0;
+            } else if (summary.containsKey("freeFlowTravelTimeInSeconds")) {
+                double freeFlowMin = ((Number) summary.get("freeFlowTravelTimeInSeconds")).doubleValue() / 60.0;
+                delayMin = Math.max(0, travelTimeMin - freeFlowMin);
+            }
+            
+            String congestionLevel = classifyCongestion(travelTimeMin, delayMin);
+            return RouteAnalysisDto.builder()
+                .routeId("route_" + routeType + "_" + System.currentTimeMillis())
+                .routeName(mapRouteTypeLabel(routeType))
+                .distance(Math.round(lengthKm * 10.0) / 10.0)
+                .estimatedTime(Math.round(travelTimeMin * 10.0) / 10.0)
+                .estimatedDelay(Math.round(delayMin * 10.0) / 10.0)
+                .congestionLevel(congestionLevel)
+                .heavyTrafficZones(buildHeavyTrafficZones(delayMin, routeType))
+                .alternativeRoutes(getAlternativeRouteNames(routeType))
+                .routeScore(calculateRouteScore(travelTimeMin, delayMin))
+                .isOptimal(false)
+                .build();
+        } catch (Exception e) {
+            return null;
         }
-        
-        return baseDelay;
     }
     
-    private String classifyCongestion(double delay) {
-        if (delay > 20) return "HIGH";
-        if (delay > 10) return "MEDIUM";
+    private String mapRouteTypeLabel(String routeType) {
+        return switch (routeType) {
+            case "shortest" -> "Shortest Route";
+            case "eco" -> "Eco Route";
+            default -> "Fastest Route";
+        };
+    }
+    
+    private String classifyCongestion(double travelTime, double delay) {
+        if (delay > 20 || (travelTime > 0 && delay / travelTime > 0.25)) return "HIGH";
+        if (delay > 10 || (travelTime > 0 && delay / travelTime > 0.15)) return "MEDIUM";
         return "LOW";
     }
     
-    private double calculateRouteScore(double delay) {
-        // Score based on delay (higher is better)
-        // Max score 100 when delay is 0, decreases with more delay
-        return Math.max(0, 100 - (delay * 2));
-    }
-    
-    private List<String> identifyHeavyTrafficZones(RouteRequestDto request) {
-        // In production, this would analyze traffic data
-        // For now, returning simulated zones
-        List<String> zones = new ArrayList<>();
-        
-        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        if (hour >= 8 && hour <= 10) {
-            zones.addAll(List.of("MG Road", "Balmatta", "Falnir Road"));
-        } else if (hour >= 17 && hour <= 19) {
-            zones.addAll(List.of("Konebettu Junction", "Hampankatta", "Main Bridge"));
-        }
-        
-        return zones;
+    private double calculateRouteScore(double travelTime, double delay) {
+        return Math.max(0, 100 - (delay * 2) - (travelTime * 0.15));
     }
     
     private double calculateCongestionPercentage(RouteAnalysisDto route) {
