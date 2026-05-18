@@ -46,8 +46,12 @@ public class RealTimeTrafficMonitorService {
                 lat, lon
             );
             
-            // Safely encode the URL to prevent Spring RestTemplate from crashing on brackets []
-            String overpassUrl = "https://overpass-api.de/api/interpreter?data=" + java.net.URLEncoder.encode(overpassQuery, "UTF-8");
+            // Safely build the URI to prevent double encoding or RestTemplate crashing
+            java.net.URI overpassUrl = org.springframework.web.util.UriComponentsBuilder
+                    .fromHttpUrl("https://overpass-api.de/api/interpreter")
+                    .queryParam("data", overpassQuery)
+                    .build()
+                    .toUri();
             
             // OpenStreetMap requires a valid User-Agent to prevent 403 Forbidden / 429 Too Many Requests errors
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();

@@ -31,7 +31,7 @@ public class RouteService {
             .max(Comparator.comparingDouble(RouteAnalysisDto::getRouteScore))
             .orElseThrow(() -> new RuntimeException("No valid routes available"));
         
-        bestRoute.setIsOptimal(true); // Mark the best route as optimal
+        bestRoute.setOptimal(true); // Mark the best route as optimal
         
         // Get AI recommendation from Gemini using real route data
         double congestionPercentage = calculateCongestionPercentage(bestRoute);
@@ -124,6 +124,7 @@ public class RouteService {
                 .isOptimal(false)
                 .build();
         } catch (Exception e) {
+            System.err.println("Error fetching route from TomTom API: " + e.getMessage());
             return null;
         }
     }
@@ -150,5 +151,20 @@ public class RouteService {
         if ("HIGH".equals(route.getCongestionLevel())) return 75.0;
         if ("MEDIUM".equals(route.getCongestionLevel())) return 50.0;
         return 25.0;
+    }
+
+    private List<String> buildHeavyTrafficZones(double delayMin, String routeType) {
+        List<String> zones = new ArrayList<>();
+        if (delayMin > 5) {
+            zones.add("Major intersection delay detected");
+        }
+        if (delayMin > 15) {
+            zones.add("Severe congestion on primary road");
+        }
+        return zones;
+    }
+
+    private List<String> getAlternativeRouteNames(String routeType) {
+        return List.of();
     }
 }

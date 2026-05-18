@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, forwardRef } from 'react';
+﻿import React, { useEffect, useRef, forwardRef } from 'react';
 import tt from '@tomtom-international/web-sdk-maps';
 import '@tomtom-international/web-sdk-maps/dist/maps.css';
+import { MapPin } from 'lucide-react';
 
 const RouteMap = forwardRef(({ startCoords, endCoords, route }, ref) => {
   const mapElement = useRef();
@@ -56,30 +57,30 @@ const RouteMap = forwardRef(({ startCoords, endCoords, route }, ref) => {
     if (startMarker.current) startMarker.current.remove();
     if (endMarker.current) endMarker.current.remove();
 
-    // Create start marker (green)
-    const startPopup = new tt.Popup().setHTML(`
-      <div style="color: #333; padding: 8px; font-weight: bold; background: #69f0ae; border-radius: 4px;">
-        Start Point
+    // Create start marker (white)
+    const startPopup = new tt.Popup().setHTML(
+      <div style="color: #000; padding: 6px 10px; font-weight: bold; font-family: monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; background: #FFF; border-radius: 0;">
+        START
       </div>
-    `);
+    );
 
     startMarker.current = new tt.Marker({
-      color: '#69f0ae',
+      color: '#FFFFFF',
       size: 'large'
     })
       .setLngLat(startCoords)
       .setPopup(startPopup)
       .addTo(mapInstance.current);
 
-    // Create end marker (red)
-    const endPopup = new tt.Popup().setHTML(`
-      <div style="color: #fff; padding: 8px; font-weight: bold; background: #ff6b6b; border-radius: 4px;">
-        End Point
+    // Create end marker (emerald)
+    const endPopup = new tt.Popup().setHTML(
+      <div style="color: #000; padding: 6px 10px; font-weight: bold; font-family: monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; background: #10B981; border-radius: 0;">
+        END
       </div>
-    `);
+    );
 
     endMarker.current = new tt.Marker({
-      color: '#ff6b6b',
+      color: '#10B981',
       size: 'large'
     })
       .setLngLat(endCoords)
@@ -97,25 +98,26 @@ const RouteMap = forwardRef(({ startCoords, endCoords, route }, ref) => {
   }, [startCoords, endCoords]);
 
   return (
-    <div className="bg-[#1a1a1a]/80 border border-[#2a2a2a] rounded-2xl p-6 backdrop-blur-xl h-full">
-      <h3 className="text-xl font-bold mb-4 flex items-center space-x-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#009688]">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-          <circle cx="12" cy="10" r="3"></circle>
-        </svg>
-        <span>Route Map</span>
-      </h3>
+    <div className="w-full h-full flex flex-col bg-[#050505]">
+      {/* Map Header */}
+      <div className="flex items-center justify-between p-4 border-b border-[#222] bg-[#0A0A0A]">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-white flex items-center space-x-2">
+          <MapPin className="w-4 h-4 text-[#888]" />
+          <span>Real-time Map Matrix</span>
+        </h3>
+        <span className="flex items-center text-[10px] text-emerald-500 font-bold uppercase tracking-widest">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+            LIVE
+        </span>
+      </div>
 
+      {/* Map Container */}
       <div
         ref={mapElement}
-        className="w-full h-96 rounded-xl overflow-hidden border border-[#333333]/50 shadow-2xl"
-        style={{ touchAction: 'manipulation' }}
-      />
-
-      {/* Map Info */}
-      <div className="mt-4 p-3 bg-[#121212]/50 rounded-lg border border-[#2a2a2a] text-sm text-gray-400">
-        <p>🚦 Showing live traffic flow and incidents</p>
-        <p>📍 Green marker: Start | 📍 Red marker: Destination</p>
+        className="w-full flex-grow relative"
+        style={{ touchAction: 'manipulation', minHeight: '400px' }}
+      >
+        <div className="absolute inset-0 border-[4px] border-[#0A0A0A] pointer-events-none z-10 mix-blend-overlay"></div>
       </div>
     </div>
   );

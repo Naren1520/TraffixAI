@@ -115,179 +115,165 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-[#eaeaea] p-4 md:p-8 font-sans selection:bg-[#009688]/30">
-      {/* Header Container */}
-      <div className="max-w-7xl mx-auto basis-full flex flex-col space-y-6 md:space-y-8">
-        
-        <Header 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          handleLocationSearch={handleLocationSearch}
-          isMonitoring={isMonitoring}
-          toggleMonitoring={toggleMonitoring}
-        />
+    <div className="flex flex-col space-y-8 pb-10">
+      <Header 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleLocationSearch={handleLocationSearch}
+        isMonitoring={isMonitoring}
+        toggleMonitoring={toggleMonitoring}
+      />
 
-        {/* Top Stats Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Peak Hour Card */}
-          <div className="bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl flex items-center justify-between">
-            <div>
-              <p className="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-1">Today's Peak Congestion</p>
-              <h3 className="text-3xl font-bold text-white">
-                {peakHour?.peakHour !== undefined ? `${peakHour.peakHour % 12 || 12}:00 ${peakHour.peakHour >= 12 ? 'PM' : 'AM'}` : '--:--'}
-              </h3>
-              <p className="text-[#009688] text-sm mt-2 font-medium">Busiest hour since 12:00 AM</p>
-            </div>
-            <div className="bg-[#009688]/10 p-4 rounded-full">
-              <Activity className="w-10 h-10 text-[#009688]" />
-            </div>
+      {/* Top Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-[#0A0A0A] p-6 rounded-2xl border border-[#222] flex items-center justify-between transition hover:border-[#444]">
+          <div>
+            <p className="text-[10px] text-[#888] font-bold uppercase tracking-[0.2em] mb-2">Peak Congestion</p>
+            <h3 className="text-3xl font-light text-white">
+              {peakHour?.peakHour !== undefined ? `${peakHour.peakHour % 12 || 12}:00 ${peakHour.peakHour >= 12 ? 'PM' : 'AM'}` : '--:--'}
+            </h3>
+            <p className="text-[#666] text-xs mt-3">Busiest hour today</p>
           </div>
-
-          {/* Active Vehicles Card */}
-          <div className="bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl flex items-center justify-between">
-            <div>
-              <p className="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-1">Estimated Load</p>
-              <h3 className="text-3xl font-bold text-white">
-                {trafficData.length > 0 ? trafficData[trafficData.length - 1].vehicleCount : '0'}
-              </h3>
-              <p className="text-[#69f0ae] text-sm mt-2 font-medium">Real-time flow density</p>
-            </div>
-            <div className="bg-[#69f0ae]/10 p-4 rounded-full">
-              <Car className="w-10 h-10 text-[#69f0ae]" />
-            </div>
-          </div>
-
-          {/* Total Alerts Card */}
-          <div className="bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl flex items-center justify-between">
-            <div>
-              <p className="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-1">Active Alerts</p>
-              <h3 className="text-3xl font-bold text-white">{alerts.length}</h3>
-              <p className="text-rose-400 text-sm mt-2 font-medium">Critical system notifications</p>
-            </div>
-            <div className="bg-rose-500/10 p-4 rounded-full">
-              <AlertCircle className="w-10 h-10 text-rose-400" />
-            </div>
+          <div className="p-3 bg-[#111] rounded-full border border-[#222]">
+            <Activity className="w-6 h-6 text-white" />
           </div>
         </div>
 
-        {/* Main Map + Data Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-[#0A0A0A] p-6 rounded-2xl border border-[#222] flex items-center justify-between transition hover:border-[#444]">
+          <div>
+            <p className="text-[10px] text-[#888] font-bold uppercase tracking-[0.2em] mb-2">Estimated Load</p>
+            <h3 className="text-3xl font-light text-white">
+              {trafficData.length > 0 ? trafficData[trafficData.length - 1].vehicleCount : '0'}
+            </h3>
+            <p className="text-[#666] text-xs mt-3">Real-time flow density</p>
+          </div>
+          <div className="p-3 bg-[#111] rounded-full border border-[#222]">
+            <Car className="w-6 h-6 text-white" />
+          </div>
+        </div>
+
+        <div className="bg-[#0A0A0A] p-6 rounded-2xl border border-[#222] flex items-center justify-between transition hover:border-[#444]">
+          <div>
+            <p className="text-[10px] text-[#888] font-bold uppercase tracking-[0.2em] mb-2">Active Alerts</p>
+            <h3 className="text-3xl font-light text-white">{alerts.length}</h3>
+            <p className="text-rose-500 text-xs mt-3">Critical notifications</p>
+          </div>
+          <div className="p-3 bg-[#1A0505] rounded-full border border-[#300]">
+            <AlertCircle className="w-6 h-6 text-rose-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Map + Data Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-2xl overflow-hidden border border-[#222]">
           <TomTomMap center={mapCenter} />
-          <div className="bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl">
-            <h3 className="text-xl font-bold mb-6 flex items-center space-x-2">
-              <Activity className="w-5 h-5 text-[#009688]" />
-              <span>Live Speed Analytics</span>
-            </h3>
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trafficData}>
-
-                  <defs>
-                    <linearGradient id="colorVehicles" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#009688" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#009688" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
-                  <XAxis 
-                    dataKey="timestamp" 
-                    tickFormatter={(time) => new Date(time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}
-                    stroke="#444444" 
-                    tick={{fill: '#888888'}}
-                  />
-                  <YAxis stroke="#444444" tick={{fill: '#888888'}} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1a1a1a', borderColor: '#2a2a2a', borderRadius: '0.75rem', color: '#f8fafc' }}
-                    labelFormatter={(label) => new Date(label).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}
-                  />
-                  <Area type="monotone" dataKey="vehicleCount" stroke="#009688" strokeWidth={3} fillOpacity={1} fill="url(#colorVehicles)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
         </div>
-
-        {/* Separated Routes Analyics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Free & Safe Routes (Left) */}
-          <div className="bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl flex flex-col h-[400px]">
-            <h3 className="text-xl font-bold mb-4 flex items-center space-x-2">
-              <MapPin className="w-5 h-5 text-[#69f0ae]" />
-              <span>Free & Safe Routes (Low Congestion)</span>
-            </h3>
-            <div className="space-y-3 overflow-y-auto pr-2 pb-2">
-              {leastRoads.map((road, idx) => (
-                <div key={idx} className="flex justify-between items-center p-4 bg-[#222222]/40 rounded-xl border-l-4 border-[#69f0ae] shadow-md shadow-[#69f0ae]/10">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-[#69f0ae]/20 text-[#69f0ae] font-bold rounded-full w-8 h-8 flex items-center justify-center">
-                      {idx + 1}
-                    </div>
-                    <span className="font-semibold text-[#eaeaea] text-lg">{road.roadId}</span>
-                  </div>
-                  <span className="px-4 py-2 bg-[#69f0ae]/10 text-[#69f0ae] border border-[#69f0ae]/30 rounded-lg font-medium text-sm">
-                    {road.totalVehicleCount} Flow Index
-                  </span>
-                </div>
-              ))}
-              {leastRoads.length === 0 && <p className="text-gray-400 italic mt-4 text-center">Fetching safe routes...</p>}
-            </div>
-          </div>
-
-          {/* Highest Congestion (Right) */}
-          <div className="bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl flex flex-col h-[400px]">
-            <h3 className="text-xl font-bold mb-4 flex items-center space-x-2">
-              <MapPin className="w-5 h-5 text-rose-400" />
-              <span>Highest Congestion (Avoid)</span>
-            </h3>
-            <div className="space-y-3 overflow-y-auto pr-2 mb-6">
-              {topRoads.map((road, idx) => (
-                <div key={idx} className="flex justify-between items-center p-4 bg-[#222222]/40 rounded-xl border-l-4 border-rose-500 shadow-md shadow-rose-500/10">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-rose-500/20 text-rose-400 font-bold rounded-full w-8 h-8 flex items-center justify-center">
-                      {idx + 1}
-                    </div>
-                    <span className="font-semibold text-[#eaeaea] text-lg">{road.roadId}</span>
-                  </div>
-                  <span className="px-4 py-2 bg-rose-500/10 text-rose-400 border border-rose-500/30 rounded-lg font-medium text-sm animate-pulse">
-                    {road.totalVehicleCount} Traffic Units
-                  </span>
-                </div>
-              ))}
-              {topRoads.length === 0 && <p className="text-gray-400 italic mt-4 text-center">Fetching congested routes...</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Alerts Panel */}
-        <div className="bg-[#1a1a1a]/80 p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl">
-          <h3 className="text-xl font-bold mb-6 flex items-center space-x-2">
-            <AlertCircle className="w-5 h-5 text-rose-400" />
-            <span>System Alerts</span>
+        <div className="bg-[#0A0A0A] p-6 rounded-2xl border border-[#222]">
+          <h3 className="text-sm font-semibold mb-6 flex items-center space-x-3 text-white uppercase tracking-widest">
+            <Activity className="w-4 h-4 text-[#888]" />
+            <span>Live Diagnostics</span>
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {alerts.slice(-6).reverse().map((alert, idx) => (
-              <div key={idx} className="bg-rose-500/5 p-5 rounded-xl border border-rose-500/20 relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
-                <div className="flex justify-between items-start mb-2">
-                  <span className="font-bold text-[#eaeaea]">{alert.roadId}</span>
-                  <span className="text-xs text-gray-400">{new Date(alert.timestamp).toLocaleTimeString()}</span>
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trafficData}>
+                <defs>
+                  <linearGradient id="colorVehicles" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#FFFFFF" stopOpacity={0.15}/>
+                    <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
+                <XAxis 
+                  dataKey="timestamp" 
+                  tickFormatter={(time) => new Date(time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}
+                  stroke="#333" 
+                  tick={{fill: '#666', fontSize: 10}}
+                />
+                <YAxis stroke="#333" tick={{fill: '#666', fontSize: 10}} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#050505', borderColor: '#222', borderRadius: '8px', color: '#FFF' }}
+                  itemStyle={{ color: '#FFF' }}
+                  labelFormatter={(label) => new Date(label).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}
+                />
+                <Area type="monotone" dataKey="vehicleCount" stroke="#FFF" strokeWidth={2} fillOpacity={1} fill="url(#colorVehicles)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Separated Routes Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Free & Safe Routes */}
+        <div className="bg-[#0A0A0A] p-6 rounded-2xl border border-[#222] xl:h-[400px] flex flex-col">
+          <h3 className="text-[11px] font-bold mb-6 flex items-center space-x-3 text-[#E5E5E5] uppercase tracking-[0.15em]">
+            <MapPin className="w-4 h-4 text-emerald-400" />
+            <span>Optimized Routes</span>
+          </h3>
+          <div className="space-y-4 overflow-y-auto pr-2 pb-2">
+            {leastRoads.map((road, idx) => (
+              <div key={idx} className="flex justify-between items-center pb-4 border-b border-[#1A1A1A] last:border-b-0 group transition hover:border-[#333]">
+                <div className="flex items-center space-x-4">
+                  <div className="text-emerald-400 font-mono text-xs w-6 text-center">{String(idx + 1).padStart(2, '0')}.</div>
+                  <span className="font-medium text-[#E5E5E5] text-sm group-hover:text-emerald-300 transition-colors">{road.roadId}</span>
                 </div>
-                <p className="text-rose-400 text-sm font-medium">{alert.alertReason}</p>
-                <div className="mt-4 flex space-x-4 text-xs font-semibold text-gray-300">
-                  <span className="bg-[#121212]/50 px-2 py-1 rounded">Count: {alert.vehicleCount}</span>
-                  <span className="bg-[#121212]/50 px-2 py-1 rounded">Speed: {alert.avgSpeed.toFixed(1)} km/h</span>
-                </div>
+                <span className="text-emerald-400 text-xs font-mono">FLOW: {road.totalVehicleCount}</span>
               </div>
             ))}
-            {alerts.length === 0 && (
-              <div className="col-span-full py-8 text-center text-gray-400">
-                No active traffic alerts. Excellent flow currently!
-              </div>
-            )}
+            {leastRoads.length === 0 && <p className="text-[#555] text-xs tracking-widest uppercase italic mt-4 text-center">Awaiting telemetry...</p>}
           </div>
         </div>
 
+        {/* Highest Congestion */}
+        <div className="bg-[#0A0A0A] p-6 rounded-2xl border border-[#222] xl:h-[400px] flex flex-col">
+          <h3 className="text-[11px] font-bold mb-6 flex items-center space-x-3 text-[#E5E5E5] uppercase tracking-[0.15em]">
+            <MapPin className="w-4 h-4 text-rose-500" />
+            <span>Congestion Zones</span>
+          </h3>
+          <div className="space-y-4 overflow-y-auto pr-2 mb-6">
+            {topRoads.map((road, idx) => (
+              <div key={idx} className="flex justify-between items-center pb-4 border-b border-[#1A1A1A] last:border-b-0 group transition hover:border-[#333]">
+                <div className="flex items-center space-x-4">
+                  <div className="text-rose-500 font-mono text-xs w-6 text-center">{String(idx + 1).padStart(2, '0')}.</div>
+                  <span className="font-medium text-[#E5E5E5] text-sm group-hover:text-rose-400 transition-colors">{road.roadId}</span>
+                </div>
+                <span className="text-rose-500 text-xs font-mono animate-pulse">LOAD: {road.totalVehicleCount}</span>
+              </div>
+            ))}
+            {topRoads.length === 0 && <p className="text-[#555] text-xs tracking-widest uppercase italic mt-4 text-center">Awaiting telemetry...</p>}
+          </div>
+        </div>
       </div>
+
+      {/* Alerts Panel */}
+      <div className="bg-[#0A0A0A] p-6 rounded-2xl border border-[#222]">
+        <h3 className="text-[11px] font-bold mb-8 flex items-center space-x-3 text-[#E5E5E5] uppercase tracking-[0.15em]">
+          <AlertCircle className="w-4 h-4 text-rose-500" />
+          <span>Priority Alerts</span>
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {alerts.slice(-6).reverse().map((alert, idx) => (
+            <div key={idx} className="flex flex-col relative pl-4 border-l border-rose-900 hover:border-rose-500 transition-colors">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs font-semibold text-white uppercase tracking-widest">{alert.roadId}</span>
+                <span className="text-[10px] text-[#666] font-mono">{new Date(alert.timestamp).toLocaleTimeString()}</span>
+              </div>
+              <p className="text-rose-400 text-sm font-medium mb-4">{alert.alertReason}</p>
+              <div className="flex space-x-4 text-[10px] text-[#888] font-mono mt-auto">
+                <span>V-COUNT: {alert.vehicleCount}</span>
+                <span>SPD: {alert.avgSpeed.toFixed(1)}KM/H</span>
+              </div>
+            </div>
+          ))}
+          {alerts.length === 0 && (
+            <div className="col-span-full py-8 text-center text-[#555] text-xs tracking-widest uppercase">
+              System nominal. No alerts.
+            </div>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }

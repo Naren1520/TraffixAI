@@ -1,101 +1,90 @@
-import React from 'react';
-import { Clock, MapPin, TrendingUp, Award } from 'lucide-react';
+﻿import React from 'react';
+import { Clock, MapPin, TrendingUp, Award, BarChart3, AlertCircle } from 'lucide-react';
 
 function RouteDetails({ routes, selectedRoute, onSelectRoute }) {
   const getCongestionColor = (level) => {
-    if (level === 'HIGH') return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
-    if (level === 'MEDIUM') return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
-    return 'text-[#69f0ae] bg-[#69f0ae]/10 border-[#69f0ae]/30';
+    if (level === 'HIGH') return 'text-rose-500 bg-rose-500/5 border-rose-500/20';
+    if (level === 'MEDIUM') return 'text-amber-500 bg-amber-500/5 border-amber-500/20';
+    return 'text-emerald-500 bg-emerald-500/5 border-emerald-500/20';
   };
 
   const getCongestionIcon = (level) => {
-    if (level === 'HIGH') return '🔴';
-    if (level === 'MEDIUM') return '🟡';
-    return '🟢';
+    if (level === 'HIGH') return <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-2"></div>;
+    if (level === 'MEDIUM') return <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2"></div>;
+    return <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></div>;
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-bold text-white flex items-center space-x-2">
-        <TrendingUp className="w-5 h-5 text-[#009688]" />
-        <span>Available Routes</span>
-      </h3>
+    <div className="space-y-4 h-full flex flex-col">
+      <div className="flex items-center justify-between pb-4 border-b border-[#222]">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-white flex items-center space-x-2">
+          <TrendingUp className="w-4 h-4 text-[#888]" />
+          <span>Computed Options</span>
+        </h3>
+        <span className="text-[10px] text-[#555] font-mono">{routes?.length || 0} FOUND</span>
+      </div>
 
-      <div className="space-y-3 max-h-96 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-[#333] hover:scrollbar-thumb-[#444]">
         {routes && routes.map((route, idx) => (
           <button
             key={idx}
             onClick={() => onSelectRoute(route)}
-            className={`w-full p-4 rounded-xl text-left transition transform ${
+            className={`w-full p-5 text-left transition duration-300 border ${
               selectedRoute && selectedRoute.routeId === route.routeId
-                ? 'bg-[#009688]/20 border-2 border-[#009688] scale-105'
-                : 'bg-[#1a1a1a]/80 border border-[#2a2a2a] hover:border-[#009688]/50'
+                ? 'bg-[#050505] border-white'
+                : 'bg-[#000] border-[#222] hover:border-[#444]'
             }`}
           >
             {/* Route Header */}
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-4">
               <div>
-                <h4 className="font-bold text-white text-sm">{route.routeName}</h4>
-                <p className="text-xs text-gray-400">{route.routeId.substring(0, 20)}...</p>
+                <h4 className="font-light text-white text-base tracking-wide">{route.routeName}</h4>
+                <p className="text-[10px] font-mono text-[#555] uppercase mt-1">{route.routeId.substring(0, 16)}...</p>
               </div>
               {route.isOptimal && (
-                <div className="bg-[#009688]/20 text-[#69f0ae] px-2 py-1 rounded text-xs font-semibold flex items-center space-x-1">
+                <div className="border border-emerald-500/30 text-emerald-400 px-2 py-1 flex items-center space-x-1">
                   <Award className="w-3 h-3" />
-                  <span>Optimal</span>
+                  <span className="text-[9px] uppercase tracking-widest font-bold">Optimal</span>
                 </div>
               )}
             </div>
 
-            {/* Route Stats */}
-            <div className="space-y-2 mb-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400 flex items-center space-x-1">
-                  <MapPin className="w-3 h-3" />
-                  <span>Distance</span>
-                </span>
-                <span className="font-semibold text-white">{route.distance.toFixed(1)} km</span>
+            {/* Route Stats Minimal Grid */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-[#111] border border-[#222] p-3 flex justify-between items-center">
+                <span className="text-[10px] text-[#666] tracking-widest uppercase font-semibold">Dist</span>
+                <span className="font-light text-white text-sm">{route.distance.toFixed(1)} <span className="text-[#555] text-[10px]">km</span></span>
               </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400 flex items-center space-x-1">
-                  <Clock className="w-3 h-3" />
-                  <span>Est. Time</span>
-                </span>
-                <span className="font-semibold text-white">{route.estimatedTime.toFixed(0)} min</span>
+              <div className="bg-[#111] border border-[#222] p-3 flex justify-between items-center">
+                <span className="text-[10px] text-[#666] tracking-widest uppercase font-semibold">Time</span>
+                <span className="font-light text-white text-sm">{route.estimatedTime.toFixed(0)} <span className="text-[#555] text-[10px]">m</span></span>
               </div>
+            </div>
 
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">Delay</span>
-                <span className="font-semibold text-yellow-400">{route.estimatedDelay.toFixed(0)} min</span>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">Score</span>
-                <div className="flex items-center space-x-2">
-                  <div className="w-16 h-1.5 bg-[#2a2a2a] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#009688] to-[#69f0ae]"
-                      style={{ width: `${route.routeScore}%` }}
-                    ></div>
+            <div className="flex items-center justify-between mb-4 bg-[#111] border border-[#222] p-3">
+               <div className="flex flex-col">
+                  <span className="text-[10px] text-[#666] tracking-widest uppercase font-semibold mb-1">Score Matrix</span>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-24 h-1 bg-[#222] overflow-hidden">
+                      <div
+                        className="h-full bg-white transition-all duration-1000"
+                        style={{ width: `${route.routeScore}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <span className="font-semibold text-[#009688] w-8">{route.routeScore.toFixed(0)}</span>
-                </div>
-              </div>
+               </div>
+               <span className="font-light text-white text-lg">{route.routeScore.toFixed(0)}<span className="text-[#555] text-[10px]">/100</span></span>
             </div>
 
             {/* Congestion Status */}
-            <div className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-1 ${getCongestionColor(route.congestionLevel)}`}>
-              <span>{getCongestionIcon(route.congestionLevel)}</span>
-              <span>{route.congestionLevel} Congestion</span>
+            <div className={`p-3 border text-[10px] uppercase tracking-widest font-bold flex items-center justify-start ${getCongestionColor(route.congestionLevel)}`}>
+              {getCongestionIcon(route.congestionLevel)}
+              <span>{route.congestionLevel} Density</span>
+              {route.estimatedDelay > 0 && (
+                <span className="ml-auto opacity-70">+{route.estimatedDelay.toFixed(0)}m Delay</span>
+              )}
             </div>
 
-            {/* Heavy Traffic Zones */}
-            {route.heavyTrafficZones && route.heavyTrafficZones.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-[#2a2a2a]">
-                <p className="text-xs text-gray-400 mb-1">⚠️ Heavy zones:</p>
-                <p className="text-xs text-gray-500">{route.heavyTrafficZones.join(', ')}</p>
-              </div>
-            )}
           </button>
         ))}
       </div>
