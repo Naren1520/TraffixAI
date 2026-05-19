@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Navigation, Settings, HelpCircle, Activity } from 'lucide-react';
+import { LayoutDashboard, Navigation, AlertTriangle, HelpCircle, Activity } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -8,9 +8,8 @@ const Sidebar = () => {
   const links = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Route Analyzer', path: '/route-analyzer', icon: Navigation },
-    { name: 'Live Traffic', path: '#', icon: Activity, disabled: true },
-    { name: 'Settings', path: '#', icon: Settings, disabled: true },
-    { name: 'Help', path: '#', icon: HelpCircle, disabled: true },
+    { name: 'Incident Center', path: '/incident-center', icon: AlertTriangle },
+    { name: 'Help', path: '/help', icon: HelpCircle },
   ];
 
   return (

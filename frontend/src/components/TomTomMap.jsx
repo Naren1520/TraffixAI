@@ -24,19 +24,28 @@ const TomTomMap = ({ center }) => {
         setMapInstance(map);
 
         map.on('load', () => {
-            // Traffic Flow Layer
-            map.addTier(new tt.TrafficFlowTilesTier({
-                key: apiKey,
-                style: 'tomtom://vector/1/relative'
-            }));
-
-            // Traffic Incidents Layer
-            map.addTier(new tt.TrafficIncidentTier({
-                key: apiKey,
-                incidentDetails: {
-                    style: 's0'
+            // Try to add traffic layers if available in the SDK
+            try {
+                // Traffic Flow Layer using the correct method
+                if (tt.TrafficFlowTilesTier) {
+                    map.addTier(new tt.TrafficFlowTilesTier({
+                        key: apiKey,
+                        style: 'tomtom://vector/1/relative'
+                    }));
                 }
-            }));
+                // Traffic Incidents Layer
+                if (tt.TrafficIncidentTier) {
+                    map.addTier(new tt.TrafficIncidentTier({
+                        key: apiKey,
+                        incidentDetails: {
+                            style: 's0'
+                        }
+                    }));
+                }
+            } catch (err) {
+                console.warn("Could not load traffic layers:", err.message);
+                // Silently fail - map still works without traffic layers
+            }
         });
 
         // Click event to show popup with coordinates and raw data idea

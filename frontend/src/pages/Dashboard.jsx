@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import axios from 'axios';
 import { Stomp } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -6,8 +6,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { AlertCircle, Car, Play, Square, Activity, MapPin, Search } from 'lucide-react';
 import Header from '../components/Header';
 import TomTomMap from '../components/TomTomMap';
+import { CityContext } from '../context/CityContext';
 
 function Dashboard() {
+  const { updateCity } = useContext(CityContext);
   const [trafficData, setTrafficData] = useState([]);
   const [topRoads, setTopRoads] = useState([]);
   const [leastRoads, setLeastRoads] = useState([]); // Free flow state
@@ -22,6 +24,12 @@ function Dashboard() {
   useEffect(() => {
     currentCityRef.current = currentCity;
   }, [currentCity]);
+
+  useEffect(() => {
+    // Update global city context whenever dashboard city changes
+    // Using a debounce-like approach to prevent infinite loops
+    updateCity(currentCity, { lat: mapCenter[1], lng: mapCenter[0], radius: 0.08 });
+  }, [currentCity, mapCenter]);
 
   useEffect(() => {
     fetchInitialData(currentCity);
