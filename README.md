@@ -71,8 +71,8 @@ TraffixAI/
 │                       ├── TrafficAnalyticsApplication.java
 │                       ├── config/
 │                       │   ├── CorsConfig.java
-│   │                       │   ├── RestTemplateConfig.java
-│   │                       │   └── WebSocketConfig.java
+│                       │   │   ├── RestTemplateConfig.java
+│                       │   │   └── WebSocketConfig.java
 │                       ├── controller/
 │                       │   ├── LiveTrafficController.java
 │                       │   ├── RouteController.java
@@ -166,3 +166,12 @@ Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue
 ## Notes
 - The frontend uses React Router between Dashboard, Route Analyzer, Incident Center, and Help.
 - Backend architecture is modular with controllers, services, repositories, and DTO mapping.
+
+
+
+
+
+-------------------------------------------------------------------------------------------------
+- .\apache-maven-3.9.6\bin\mvn.cmd spring-boot:run
+
+- Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force } ; Write-Host "Done"
