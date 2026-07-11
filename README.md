@@ -144,11 +144,22 @@ Open `http://localhost:5173` in your browser.
 cd frontend
 npm run build
 ```
+
+For Netlify, set these environment variables in the site settings:
+- `VITE_TOMTOM_API_KEY`
+- `VITE_API_BASE_URL=https://your-backend-host.example.com`
+- `VITE_WS_BASE_URL=https://your-backend-host.example.com`
+
 ### Backend
 ```powershell
 cd "c:\Users\Naren S J\Downloads\TraffixAI"
 .\apache-maven-3.9.6\bin\mvn.cmd clean package
 ```
+
+For Render, the backend uses these environment variables:
+- `TOMTOM_API_KEY`
+- `GEMINI_API_KEY`
+- `ALLOWED_ORIGINS` (for example `https://your-netlify-site.netlify.app`)
 
 ## Troubleshooting
 - If port `8080` is occupied, stop the process:

@@ -12,3 +12,5 @@ services:
         sync: false
       - key: VITE_TOMTOM_API_KEY
         sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false

@@ -4,6 +4,7 @@ import { Navigation, AlertCircle, CheckCircle2, AlertTriangle, Zap, Route } from
 import RouteSearch from '../components/RouteSearch';
 import RouteDetails from '../components/RouteDetails';
 import RouteMap from '../components/RouteMap';
+import { apiUrl } from '../api';
 
 function RouteAnalyzer() {
   const [startLocation, setStartLocation] = useState('');
@@ -25,7 +26,7 @@ function RouteAnalyzer() {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/route/analyze', {
+      const response = await axios.post(apiUrl('/api/route/analyze'), {
         startLocation: start,
         endLocation: end,
         startLat: startLat,

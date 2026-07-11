@@ -7,6 +7,7 @@ import { AlertCircle, Car, Play, Square, Activity, MapPin, Search } from 'lucide
 import Header from '../components/Header';
 import TomTomMap from '../components/TomTomMap';
 import { CityContext } from '../context/CityContext';
+import { apiUrl, wsUrl } from '../api';
 
 function Dashboard() {
   const { updateCity } = useContext(CityContext);
@@ -40,11 +41,11 @@ function Dashboard() {
     try {
       const qs = cityName ? `?city=${encodeURIComponent(cityName)}` : '';
       const [allRes, topRoadsRes, leastRoadsRes, peakRes, alertsRes] = await Promise.all([
-        axios.get(`/api/traffic/all${qs}`),
-        axios.get(`/api/traffic/top-roads${qs}`),
-        axios.get(`/api/traffic/least-roads${qs}`),
-        axios.get(`/api/traffic/peak-hours${qs}`),
-        axios.get(`/api/traffic/alerts${qs}`)
+        axios.get(apiUrl(`/api/traffic/all${qs}`)),
+        axios.get(apiUrl(`/api/traffic/top-roads${qs}`)),
+        axios.get(apiUrl(`/api/traffic/least-roads${qs}`)),
+        axios.get(apiUrl(`/api/traffic/peak-hours${qs}`)),
+        axios.get(apiUrl(`/api/traffic/alerts${qs}`))
       ]);
       setTrafficData(allRes.data.slice(-20)); // last 20 elements
       setTopRoads(topRoadsRes.data);
@@ -57,7 +58,7 @@ function Dashboard() {
   };
 
   const connectWebSocket = () => {
-    const socket = new SockJS('/ws-traffic');
+    const socket = new SockJS(wsUrl('/ws-traffic'));
     const client = Stomp.over(socket);
     client.debug = () => {}; // disable debug logs
 
@@ -78,9 +79,9 @@ function Dashboard() {
   const toggleMonitoring = async () => {
     try {
       if (isMonitoring) {
-        await axios.post('/api/live/stop');
+        await axios.post(apiUrl('/api/live/stop'));
       } else {
-        await axios.post('/api/live/start');
+        await axios.post(apiUrl('/api/live/start'));
       }
       setIsMonitoring(!isMonitoring);
     } catch (e) {
@@ -108,7 +109,7 @@ function Dashboard() {
         setMapCenter([parseFloat(lon), parseFloat(lat)]);
 
         // ðŸš€ Notify the Java Backend to start pinging real traffic data for this new location!
-        await axios.post(`/api/live/location?name=${encodeURIComponent(cityName)}&lat=${lat}&lon=${lon}`);
+        await axios.post(apiUrl(`/api/live/location?name=${encodeURIComponent(cityName)}&lat=${lat}&lon=${lon}`));
         
         // Fetch new initial data specifically for this city
         fetchInitialData(cityName);
