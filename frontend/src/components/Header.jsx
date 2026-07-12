@@ -6,9 +6,9 @@ const Header = ({ searchQuery, setSearchQuery, handleLocationSearch, isMonitorin
   const location = useLocation();
   
   return (
-    <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#0A0A0A] p-6 lg:p-8 rounded-2xl border border-[#222] mb-8">
+    <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#0A0A0A] p-5 lg:p-8 rounded-2xl border border-[#222] mb-8 gap-4">
       <div>
-        <h2 className="text-2xl font-light text-white tracking-wide">
+        <h2 className="text-xl sm:text-2xl font-light text-white tracking-wide">
           {location.pathname === '/' ? 'Overview' : 'Route Intelligence'}
         </h2>
         <p className="text-[11px] uppercase tracking-widest text-[#666] mt-2">
@@ -16,7 +16,7 @@ const Header = ({ searchQuery, setSearchQuery, handleLocationSearch, isMonitorin
         </p>
       </div>
       
-      <div className="flex flex-col sm:flex-row items-center w-full md:w-auto mt-6 md:mt-0 gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center w-full sm:w-auto gap-3">
         {location.pathname === '/' && (
           <form onSubmit={handleLocationSearch} className="relative flex items-center w-full sm:w-auto">
             <input

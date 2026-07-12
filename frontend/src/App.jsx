@@ -20,8 +20,8 @@ function App() {
       <Router>
         <div className="flex bg-[#050505] min-h-screen text-[#E5E5E5] font-sans selection:bg-white selection:text-black">
           <Sidebar />
-          <main className="flex-1 ml-64 min-h-screen bg-[#050505]">
-            <div className="p-8 max-w-[1600px] mx-auto animate-[fadeIn_0.5s_ease-out_forwards]">
+          <main className="flex-1 ml-0 md:ml-64 min-h-screen bg-[#050505]">
+            <div className="p-4 sm:p-6 lg:p-8 pt-16 md:pt-8 max-w-[1600px] mx-auto animate-[fadeIn_0.5s_ease-out_forwards]">
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/route-analyzer" element={<RouteAnalyzer />} />

@@ -98,9 +98,9 @@ function IncidentCenter() {
 
   return (
     <div className="flex flex-col space-y-8 pb-10">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#0A0A0A] p-6 lg:p-8 rounded-2xl border border-[#222]">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#0A0A0A] p-5 lg:p-8 rounded-2xl border border-[#222]">
         <div>
-          <h2 className="text-2xl font-light text-white tracking-wide">
+          <h2 className="text-xl sm:text-2xl font-light text-white tracking-wide">
             Incident Center {selectedCity && <span className="text-[#888]">• {selectedCity}</span>}
           </h2>
           <p className="text-[11px] uppercase tracking-widest text-[#666] mt-2">
@@ -173,8 +173,8 @@ function IncidentCenter() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 flex flex-col h-[550px]">
-          <div className="relative h-full flex-grow group">
+        <div className="lg:col-span-2 flex flex-col min-h-[400px] lg:h-[550px]">
+          <div className="relative flex-grow group">
             <TomTomMap 
               center={[coordinates?.lng || 77.5946, coordinates?.lat || 12.9716]}
             />
@@ -200,7 +200,7 @@ function IncidentCenter() {
         </div>
 
         <div className="lg:col-span-1 flex flex-col space-y-6">
-          <div className="bg-[#0A0A0A] border border-[#222] rounded-2xl p-6 flex flex-col h-[550px]">
+          <div className="bg-[#0A0A0A] border border-[#222] rounded-2xl p-6 flex flex-col min-h-[400px] lg:h-[550px]">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-sm font-semibold uppercase tracking-widest text-white">Incident Feed</h3>
               <Activity className="w-4 h-4 text-[#888]" />

@@ -49,11 +49,11 @@ function RouteAnalyzer() {
   };
 
   return (
-    <div className="flex flex-col space-y-8 pb-10 xl:pr-8">
+    <div className="flex flex-col space-y-8 pb-10">
       <div className="mb-0">
         <div className="flex items-center space-x-3 mb-2">
-          <Navigation className="w-6 h-6 text-white" />
-          <h1 className="text-3xl font-light tracking-wide text-white">Route Analyzer</h1>
+          <Navigation className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
+          <h1 className="text-2xl sm:text-3xl font-light tracking-wide text-white">Route Analyzer</h1>
         </div>
         <p className="text-[11px] uppercase tracking-widest text-[#666]">AI precision routing & analysis</p>
       </div>
@@ -97,7 +97,7 @@ function RouteAnalyzer() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative z-10">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 relative z-10">
                 <div className="bg-[#0A0A0A] p-4 rounded-xl border border-[#222]">
                   <p className="text-[10px] uppercase tracking-widest text-[#666] mb-1">Distance</p>
                   <p className="text-xl font-light text-white">{routeData.bestRoute.distance.toFixed(1)} <span className="text-xs text-[#555] font-mono">KM</span></p>
