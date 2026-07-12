@@ -75,6 +75,8 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     setRecentSearches([]);
+    // Reload so the app restarts from the Loader → Login flow
+    window.location.href = '/';
   }, []);
 
   /**
