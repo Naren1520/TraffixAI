@@ -63,7 +63,11 @@ export const AuthProvider = ({ children }) => {
       return { success: true, firstLogin: userData.firstLogin };
     } catch (err) {
       console.error('Login failed:', err);
-      return { success: false, error: err.response?.data?.error || 'Login failed' };
+      const status = err.response?.status;
+      const msg = status === 429
+        ? 'Too many sign-in attempts. Please wait a minute and try again.'
+        : err.response?.data?.error || 'Login failed. Please try again.';
+      return { success: false, error: msg };
     } finally {
       setLoading(false);
     }

@@ -29,7 +29,7 @@ public class AuthController {
      * Verifies the Google ID token, upserts the user in MongoDB,
      * and returns a TraffixAI JWT + user profile.
      */
-    @RateLimit(requestsPerMinute = 10)
+    @RateLimit(requestsPerMinute = 20)
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body) {
         String idToken = body.get("idToken");
