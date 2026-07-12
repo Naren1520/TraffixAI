@@ -1,11 +1,9 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Navigation, AlertTriangle, HelpCircle, Activity } from 'lucide-react';
-import { AuthContext } from '../context/AuthContext';
 
 const Sidebar = () => {
   const location = useLocation();
-  const { user } = useContext(AuthContext);
 
   const links = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -23,19 +21,6 @@ const Sidebar = () => {
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white">TraffixAI</h1>
           <p className="text-[10px] uppercase tracking-widest text-[#888]">Intelligence</p>
-        </div>
-      </div>
-
-      <div className="px-6 pb-6 border-b border-[#1D1D1D]">
-        <p className="text-[10px] tracking-[0.3em] uppercase text-[#555] mb-2">Account</p>
-        <div className="bg-[#0A0A0A] p-4 rounded-3xl border border-[#222] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#141414] flex items-center justify-center text-sm text-[#999]">
-            {user?.name ? user.name.charAt(0).toUpperCase() : 'G'}
-          </div>
-          <div>
-            <p className="text-sm font-medium text-white">{user?.name ?? 'Guest'}</p>
-            <p className="text-[11px] text-[#666]">{user?.email ?? 'Not signed in'}</p>
-          </div>
         </div>
       </div>
 
