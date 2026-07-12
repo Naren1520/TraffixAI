@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig {
 
-    @Value("${ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:8080}")
+    @Value("${ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:8080,https://traffix-aiv1.netlify.app,https://traffixai-fucw.onrender.com}")
     private String allowedOrigins;
 
     @Bean
