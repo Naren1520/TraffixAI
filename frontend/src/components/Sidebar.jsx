@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Navigation, AlertTriangle, HelpCircle, Menu, X } from 'lucide-react';
+import UserMenu from './UserMenu';
 
-const Sidebar = () => {
+const Sidebar = ({ onLoginClick }) => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -58,7 +59,10 @@ const Sidebar = () => {
         })}
       </div>
 
-      <div className="p-6">
+      <div className="p-6 space-y-4">
+        {/* User account / sign in */}
+        <UserMenu onLoginClick={() => { onLoginClick(); setIsOpen(false); }} />
+
         <div className="bg-[#1A1A1A] p-4 rounded-xl border border-[#2A2A2A]">
           <div className="w-2 h-2 bg-[#00E676] rounded-full animate-pulse mb-2"></div>
           <p className="text-xs text-[#AAA]">System Status</p>

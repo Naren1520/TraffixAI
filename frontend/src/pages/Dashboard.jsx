@@ -3,14 +3,16 @@ import axios from 'axios';
 import { Stomp } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { AlertCircle, Car, Play, Square, Activity, MapPin, Search } from 'lucide-react';
+import { AlertCircle, Car, Play, Square, Activity, MapPin, Search, Clock } from 'lucide-react';
 import Header from '../components/Header';
 import TomTomMap from '../components/TomTomMap';
 import { CityContext } from '../context/CityContext';
+import { useAuth } from '../context/AuthContext';
 import { apiUrl, wsUrl } from '../api';
 
 function Dashboard() {
   const { updateCity } = useContext(CityContext);
+  const { saveSearch, recentSearches } = useAuth();
   const [trafficData, setTrafficData] = useState([]);
   const [topRoads, setTopRoads] = useState([]);
   const [leastRoads, setLeastRoads] = useState([]); // Free flow state
@@ -108,7 +110,10 @@ function Dashboard() {
         setCurrentCity(cityName);
         setMapCenter([parseFloat(lon), parseFloat(lat)]);
 
-        // ðŸš€ Notify the Java Backend to start pinging real traffic data for this new location!
+        // Save to user's recent searches (no-op if not logged in)
+        saveSearch(cityName, parseFloat(lat), parseFloat(lon));
+
+        // Notify the Java Backend to start pinging real traffic data for this new location!
         await axios.post(apiUrl(`/api/live/location?name=${encodeURIComponent(cityName)}&lat=${lat}&lon=${lon}`));
         
         // Fetch new initial data specifically for this city
