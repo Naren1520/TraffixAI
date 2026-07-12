@@ -21,8 +21,7 @@ public class TrafficSortingService {
 
     public List<TrafficDataDto> getSortedTrafficData(String city) {
         List<TrafficData> data = (city != null && !city.isEmpty()) ? 
-                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();
-        if (data == null || data.isEmpty()) {
+                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();        if (data == null || data.isEmpty()) {
             return new ArrayList<>();
         }
         List<TrafficDataDto> dtos = data.stream().map(mapper::toDto).collect(Collectors.toList());

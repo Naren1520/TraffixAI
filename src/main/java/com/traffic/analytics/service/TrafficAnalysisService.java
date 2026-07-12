@@ -1,16 +1,13 @@
 package com.traffic.analytics.service;
 
 import com.traffic.analytics.dto.RoadTrafficSummaryDto;
-import com.traffic.analytics.dto.TrafficDataDto;
 import com.traffic.analytics.model.TrafficData;
 import com.traffic.analytics.repository.TrafficDataRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,102 +17,71 @@ public class TrafficAnalysisService {
     private final TrafficDataRepository repository;
     private final TrafficSortingService sortingService;
 
-    /**
-     * Calculates the peak traffic hour.
-     */
-    public Map<String, Object> getPeakTrafficHour(String city) {
-        List<TrafficData> data = (city != null && !city.isEmpty()) ? 
-                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();
+    // ── helpers ────────────────────────────────────────────────────────────────
 
+    private List<TrafficData> fetch(String city, String userId) {
+        if (userId != null && !userId.isEmpty()) {
+            return (city != null && !city.isEmpty())
+                    ? repository.findByUserIdAndRoadIdContainingIgnoreCase(userId, city)
+                    : repository.findByUserId(userId);
+        }
+        return (city != null && !city.isEmpty())
+                ? repository.findByRoadIdContainingIgnoreCase(city)
+                : repository.findAll();
+    }
+
+    // ── public API ─────────────────────────────────────────────────────────────
+
+    public Map<String, Object> getPeakTrafficHour(String city, String userId) {
+        List<TrafficData> data = fetch(city, userId);
         if (data == null || data.isEmpty()) {
             return Map.of("message", "No traffic data available");
         }
 
         LocalDate today = LocalDate.now();
-
-        Map<Integer, Integer> trafficByHour = data.stream()
-                .filter(d -> d.getTimestamp() != null && d.getTimestamp().toLocalDate().isEqual(today))
+        Map<Integer, Integer> byHour = data.stream()
+                .filter(d -> d.getTimestamp() != null
+                        && d.getTimestamp().toLocalDate().isEqual(today))
                 .collect(Collectors.groupingBy(
                         d -> d.getTimestamp().getHour(),
                         Collectors.summingInt(TrafficData::getVehicleCount)
                 ));
 
-        if (trafficByHour.isEmpty()) {
+        if (byHour.isEmpty()) {
             return Map.of("message", "No timestamp data available to calculate peak hours");
         }
 
-        Map.Entry<Integer, Integer> peakHourEntry = trafficByHour.entrySet().stream()
+        return byHour.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                .orElse(null);
-
-        if (peakHourEntry != null) {
-            return Map.of(
-                    "peakHour", peakHourEntry.getKey(),
-                    "totalVehicleCount", peakHourEntry.getValue()
-            );
-        }
-
-        return Map.of("message", "Could not calculate peak hour");
+                .map(e -> Map.<String, Object>of(
+                        "peakHour", e.getKey(),
+                        "totalVehicleCount", e.getValue()))
+                .orElse(Map.of("message", "Could not calculate peak hour"));
     }
 
-    /**
-     * Groups data by road, calculates total vehicles, sorts using Merge Sort, and returns top 5.
-     */
-    public List<RoadTrafficSummaryDto> getTopBusiestRoads(String city) {
-        List<TrafficData> data = (city != null && !city.isEmpty()) ? 
-                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();
-
-        if (data == null || data.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        Map<String, Integer> trafficByRoad = data.stream()
-                .filter(d -> d.getRoadId() != null)
-                .collect(Collectors.groupingBy(
-                        TrafficData::getRoadId,
-                        Collectors.summingInt(TrafficData::getVehicleCount)
-                ));
-
-        List<RoadTrafficSummaryDto> summaries = trafficByRoad.entrySet().stream()
-                .map(entry -> new RoadTrafficSummaryDto(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
-
-        List<RoadTrafficSummaryDto> sortedSummaries = sortingService.mergeSortSummaries(summaries);
-
-        return sortedSummaries.stream()
-                .limit(5)
-                .collect(Collectors.toList());
+    public List<RoadTrafficSummaryDto> getTopBusiestRoads(String city, String userId) {
+        return buildSummaries(fetch(city, userId), false);
     }
 
-    /**
-     * Groups data by road, sorts using Merge Sort (descending), and returns the lowest 5 by reversing the order.
-     */
-    public List<RoadTrafficSummaryDto> getLeastBusiestRoads(String city) {
-        List<TrafficData> data = (city != null && !city.isEmpty()) ? 
-                repository.findByRoadIdContainingIgnoreCase(city) : repository.findAll();
+    public List<RoadTrafficSummaryDto> getLeastBusiestRoads(String city, String userId) {
+        return buildSummaries(fetch(city, userId), true);
+    }
 
-        if (data == null || data.isEmpty()) {
-            return new ArrayList<>();
-        }
+    // ── private ────────────────────────────────────────────────────────────────
 
-        Map<String, Integer> trafficByRoad = data.stream()
+    private List<RoadTrafficSummaryDto> buildSummaries(List<TrafficData> data, boolean ascending) {
+        if (data == null || data.isEmpty()) return new ArrayList<>();
+
+        List<RoadTrafficSummaryDto> summaries = data.stream()
                 .filter(d -> d.getRoadId() != null)
-                .collect(Collectors.groupingBy(
-                        TrafficData::getRoadId,
-                        Collectors.summingInt(TrafficData::getVehicleCount)
-                ));
-
-        List<RoadTrafficSummaryDto> summaries = trafficByRoad.entrySet().stream()
-                .map(entry -> new RoadTrafficSummaryDto(entry.getKey(), entry.getValue()))
+                .collect(Collectors.groupingBy(TrafficData::getRoadId,
+                        Collectors.summingInt(TrafficData::getVehicleCount)))
+                .entrySet().stream()
+                .map(e -> new RoadTrafficSummaryDto(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
 
-        List<RoadTrafficSummaryDto> sortedSummaries = sortingService.mergeSortSummaries(summaries);
-
-        // Since merge sort returns descending, we reverse to get Ascending (Least Busiest First)
-        java.util.Collections.reverse(sortedSummaries);
-        
-        return sortedSummaries.stream()
-                .limit(5)
-                .collect(Collectors.toList());
+        List<RoadTrafficSummaryDto> sorted = sortingService.mergeSortSummaries(summaries);
+        if (ascending) Collections.reverse(sorted);
+        return sorted.stream().limit(5).collect(Collectors.toList());
     }
 }

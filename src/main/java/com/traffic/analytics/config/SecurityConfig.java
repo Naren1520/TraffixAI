@@ -34,7 +34,6 @@ public class SecurityConfig {
                     "/api/live/**",
                     "/api/route/**",
                     "/ws-traffic/**",
-                    "/h2-console/**",
                     "/api/auth/**"     // login endpoint is public
                 ).permitAll()
 
@@ -44,9 +43,6 @@ public class SecurityConfig {
                 // Everything else is open (future-proofing)
                 .anyRequest().permitAll()
             )
-
-            // Allow H2 console frames
-            .headers(headers -> headers.frameOptions(fo -> fo.sameOrigin()))
 
             // Add JWT filter before the default username/password filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

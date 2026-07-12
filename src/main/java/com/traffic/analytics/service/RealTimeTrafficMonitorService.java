@@ -23,6 +23,7 @@ public class RealTimeTrafficMonitorService {
     private final TrafficDataService trafficDataService;
     private final RestTemplate restTemplate = new RestTemplate();
     private boolean isMonitoring = false;
+    private String activeUserId = null; // tracks which user started monitoring
 
     @Value("${tomtom.api.key}")
     private String apiKey;
@@ -110,8 +111,14 @@ public class RealTimeTrafficMonitorService {
         this.isMonitoring = true;
     }
 
+    public void startMonitoring(String userId) {
+        this.isMonitoring = true;
+        this.activeUserId = userId;
+    }
+
     public void stopMonitoring() {
         this.isMonitoring = false;
+        this.activeUserId = null;
     }
 
     @Scheduled(fixedRate = 15000)
@@ -136,6 +143,7 @@ public class RealTimeTrafficMonitorService {
 
                     TrafficDataDto dto = TrafficDataDto.builder()
                             .roadId(roadId)
+                            .userId(activeUserId)
                             .vehicleCount(vehicleCount)
                             .avgSpeed(currentSpeed)
                             .timestamp(LocalDateTime.now())

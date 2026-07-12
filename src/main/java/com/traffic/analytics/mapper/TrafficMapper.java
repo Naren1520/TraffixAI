@@ -8,11 +8,10 @@ import org.springframework.stereotype.Component;
 public class TrafficMapper {
 
     public TrafficDataDto toDto(TrafficData entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
         return TrafficDataDto.builder()
                 .id(entity.getId())
+                .userId(entity.getUserId())
                 .roadId(entity.getRoadId())
                 .vehicleCount(entity.getVehicleCount())
                 .avgSpeed(entity.getAvgSpeed())
@@ -21,11 +20,10 @@ public class TrafficMapper {
     }
 
     public TrafficData toEntity(TrafficDataDto dto) {
-        if (dto == null) {
-            return null;
-        }
+        if (dto == null) return null;
         return TrafficData.builder()
                 .id(dto.getId())
+                .userId(dto.getUserId())
                 .roadId(dto.getRoadId())
                 .vehicleCount(dto.getVehicleCount())
                 .avgSpeed(dto.getAvgSpeed())

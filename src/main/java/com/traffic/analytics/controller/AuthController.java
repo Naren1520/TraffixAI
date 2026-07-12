@@ -1,6 +1,7 @@
 package com.traffic.analytics.controller;
 
 import com.traffic.analytics.model.User;
+import com.traffic.analytics.ratelimit.RateLimit;
 import com.traffic.analytics.security.GoogleTokenVerifier;
 import com.traffic.analytics.security.JwtUtil;
 import com.traffic.analytics.service.UserService;
@@ -28,6 +29,7 @@ public class AuthController {
      * Verifies the Google ID token, upserts the user in MongoDB,
      * and returns a TraffixAI JWT + user profile.
      */
+    @RateLimit(requestsPerMinute = 10)
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body) {
         String idToken = body.get("idToken");
