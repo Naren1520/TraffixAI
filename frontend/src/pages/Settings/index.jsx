@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   User, Mail, MapPin, Clock, Search, CheckCircle2,
   Loader, History, Settings as SettingsIcon, LogOut, Pencil, X
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
+import SettingsSkeleton from './SettingsSkeleton';
 
 function Settings() {
   const { user, recentSearches, updateDefaultLocation, logout } = useAuth();
+  const [pageLoading, setPageLoading] = useState(true);
 
   const [editing, setEditing]         = useState(false);
   const [locQuery, setLocQuery]       = useState('');
@@ -16,6 +18,11 @@ function Settings() {
   const [searching, setSearching]     = useState(false);
   const [saving, setSaving]           = useState(false);
   const [saved, setSaved]             = useState(false);
+
+  // Resolve skeleton once user is available (it's already in localStorage so this is near-instant)
+  useEffect(() => {
+    if (user) setPageLoading(false);
+  }, [user]);
 
   const formatDate = (iso) => {
     if (!iso) return '—';
@@ -70,6 +77,7 @@ function Settings() {
     setSuggestions([]);
   };
 
+  if (pageLoading) return <SettingsSkeleton />;
   if (!user) return null;
 
   return (

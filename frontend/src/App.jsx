@@ -9,10 +9,10 @@ import RouteAnalyzer from './pages/RouteAnalyzer';
 import IncidentCenter from './pages/IncidentCenter';
 import Help from './pages/Help';
 import Settings from './pages/Settings';
-import Sidebar from './components/Sidebar';
-import Loader from './components/Loader';
-import LoginModal from './components/LoginModal';
-import DefaultLocationModal from './components/DefaultLocationModal';
+import Sidebar from './components/layout/Sidebar';
+import Loader from './components/common/Loader';
+import LoginModal from './components/modals/LoginModal';
+import DefaultLocationModal from './components/modals/DefaultLocationModal';
 
 const GOOGLE_CLIENT_ID = '166478995811-gntljectoq3ht2hkvi67rg7u26dnrsru.apps.googleusercontent.com';
 

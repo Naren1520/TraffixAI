@@ -1,10 +1,11 @@
 ﻿import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { Navigation, AlertCircle, CheckCircle2, AlertTriangle, Zap, Route } from 'lucide-react';
-import RouteSearch from '../components/RouteSearch';
-import RouteDetails from '../components/RouteDetails';
-import RouteMap from '../components/RouteMap';
-import { apiUrl } from '../api';
+import RouteSearch from '../../components/route/RouteSearch';
+import RouteDetails from '../../components/route/RouteDetails';
+import RouteMap from '../../components/map/RouteMap';
+import RouteAnalyzerSkeleton from './RouteAnalyzerSkeleton';
+import { apiUrl } from '../../api';
 
 function RouteAnalyzer() {
   const [startLocation, setStartLocation] = useState('');
@@ -73,13 +74,8 @@ function RouteAnalyzer() {
         </div>
       )}
 
-      {/* Loading State */}
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-32 opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
-          <div className="w-8 h-8 border border-[#333] border-t-white rounded-full animate-spin"></div>
-          <p className="mt-4 text-[10px] tracking-[0.2em] font-medium text-[#666] uppercase">Computing Paths</p>
-        </div>
-      )}
+      {/* Loading State — full skeleton while computing */}
+      {loading && <RouteAnalyzerSkeleton />}
 
       {/* Results Section */}
       {routeData && !loading && (

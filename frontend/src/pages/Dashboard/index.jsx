@@ -2,17 +2,19 @@ import React, { useEffect, useState, useRef, useContext } from 'react';
 import axios from 'axios';
 import { Stomp } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { AlertCircle, Car, Play, Square, Activity, MapPin, Search, Clock } from 'lucide-react';
-import Header from '../components/Header';
-import TomTomMap from '../components/TomTomMap';
-import { CityContext } from '../context/CityContext';
-import { useAuth } from '../context/AuthContext';
-import { apiUrl, wsUrl } from '../api';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AlertCircle, Car, Activity, MapPin } from 'lucide-react';
+import Header from '../../components/layout/Header';
+import TomTomMap from '../../components/map/TomTomMap';
+import DashboardSkeleton from './DashboardSkeleton';
+import { CityContext } from '../../context/CityContext';
+import { useAuth } from '../../context/AuthContext';
+import { apiUrl, wsUrl } from '../../api';
 
 function Dashboard() {
   const { updateCity, selectedCity, coordinates } = useContext(CityContext);
-  const { saveSearch, recentSearches } = useAuth();
+  const { saveSearch } = useAuth();
+  const [pageLoading, setPageLoading] = useState(true);
   const [trafficData, setTrafficData] = useState([]);
   const [topRoads, setTopRoads] = useState([]);
   const [leastRoads, setLeastRoads] = useState([]);
@@ -52,13 +54,15 @@ function Dashboard() {
         axios.get(apiUrl(`/api/traffic/peak-hours${qs}`)),
         axios.get(apiUrl(`/api/traffic/alerts${qs}`))
       ]);
-      setTrafficData(allRes.data.slice(-20)); // last 20 elements
+      setTrafficData(allRes.data.slice(-20));
       setTopRoads(topRoadsRes.data);
       setLeastRoads(leastRoadsRes.data);
       setPeakHour(peakRes.data);
       setAlerts(alertsRes.data);
     } catch (e) {
       console.error(e);
+    } finally {
+      setPageLoading(false);
     }
   };
 
@@ -151,6 +155,11 @@ function Dashboard() {
         isMonitoring={isMonitoring}
         toggleMonitoring={toggleMonitoring}
       />
+
+      {pageLoading ? (
+        <DashboardSkeleton />
+      ) : (
+        <>
 
       {/* Top Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -301,7 +310,8 @@ function Dashboard() {
           )}
         </div>
       </div>
-
+      </>
+      )}
     </div>
   );
 }

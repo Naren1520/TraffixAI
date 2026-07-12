@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { Activity, X } from 'lucide-react';
 
 const LoginModal = ({ onClose, onSuccess }) => {

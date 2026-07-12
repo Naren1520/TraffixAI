@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import Header from '../components/Header';
-import TomTomMap from '../components/TomTomMap';
-import { AlertTriangle, Clock, Map as MapIcon, Activity, AlertCircle, ShieldAlert, Navigation, Loader2 } from 'lucide-react';
-import { CityContext } from '../context/CityContext';
+import TomTomMap from '../../components/map/TomTomMap';
+import { AlertTriangle, Clock, Map as MapIcon, Activity, ShieldAlert, Navigation, Loader2 } from 'lucide-react';
+import { CityContext } from '../../context/CityContext';
+import IncidentCenterSkeleton from './IncidentCenterSkeleton';
 
 function IncidentCenter() {
   const { selectedCity, coordinates } = useContext(CityContext);
@@ -98,6 +98,8 @@ function IncidentCenter() {
 
   return (
     <div className="flex flex-col space-y-8 pb-10">
+      {loading ? <IncidentCenterSkeleton /> : (
+      <>
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#0A0A0A] p-5 lg:p-8 rounded-2xl border border-[#222]">
         <div>
           <h2 className="text-xl sm:text-2xl font-light text-white tracking-wide">
@@ -267,7 +269,8 @@ function IncidentCenter() {
           </div>
         </div>
       </div>
-
+      </>
+      )}
     </div>
   );
 }

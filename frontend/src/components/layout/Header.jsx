@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Search, Square, Play, Clock, MapPin, Loader } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 
 const Header = ({ searchQuery, setSearchQuery, handleLocationSearch, isMonitoring, toggleMonitoring }) => {
