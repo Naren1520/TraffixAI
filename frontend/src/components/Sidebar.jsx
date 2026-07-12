@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Navigation, AlertTriangle, HelpCircle, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Navigation, AlertTriangle, HelpCircle, Menu, X, Settings } from 'lucide-react';
 import UserMenu from './UserMenu';
 
 const Sidebar = ({ onLoginClick }) => {
@@ -8,10 +8,11 @@ const Sidebar = ({ onLoginClick }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Route Analyzer', path: '/route-analyzer', icon: Navigation },
-    { name: 'Incident Center', path: '/incident-center', icon: AlertTriangle },
-    { name: 'Help', path: '/help', icon: HelpCircle },
+    { name: 'Dashboard',      path: '/',                icon: LayoutDashboard },
+    { name: 'Route Analyzer', path: '/route-analyzer',  icon: Navigation },
+    { name: 'Incident Center',path: '/incident-center', icon: AlertTriangle },
+    { name: 'Settings',       path: '/settings',        icon: Settings },
+    { name: 'Help',           path: '/help',            icon: HelpCircle },
   ];
 
   const sidebarContent = (

@@ -1,0 +1,260 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import {
+  User, Mail, MapPin, Clock, Search, CheckCircle2,
+  Loader, History, Settings as SettingsIcon, LogOut
+} from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+function Settings() {
+  const { user, recentSearches, updateDefaultLocation, logout } = useAuth();
+
+  // Default location editor state
+  const [locQuery, setLocQuery]       = useState(user?.defaultCity || '');
+  const [suggestions, setSuggestions] = useState([]);
+  const [selected, setSelected]       = useState(
+    user?.defaultCity
+      ? { city: user.defaultCity, lat: user.defaultLat, lng: user.defaultLng }
+      : null
+  );
+  const [searching, setSearching]     = useState(false);
+  const [saving, setSaving]           = useState(false);
+  const [saved, setSaved]             = useState(false);
+
+  // ── location search ────────────────────────────────────────────────────────
+
+  const searchLocation = async (q) => {
+    if (q.length < 2) { setSuggestions([]); return; }
+    setSearching(true);
+    try {
+      const res = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`
+      );
+      setSuggestions(res.data);
+    } catch {}
+    finally { setSearching(false); }
+  };
+
+  const handleLocInput = (e) => {
+    setLocQuery(e.target.value);
+    setSelected(null);
+    setSaved(false);
+    searchLocation(e.target.value);
+  };
+
+  const handleSelect = (place) => {
+    const city = place.name || place.display_name.split(',')[0];
+    setLocQuery(city);
+    setSelected({ city, lat: parseFloat(place.lat), lng: parseFloat(place.lon) });
+    setSuggestions([]);
+  };
+
+  const handleSaveLocation = async () => {
+    if (!selected) return;
+    setSaving(true);
+    await updateDefaultLocation(selected.city, selected.lat, selected.lng);
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  // ── helpers ────────────────────────────────────────────────────────────────
+
+  const formatDate = (iso) => {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'long', year: 'numeric'
+      });
+    } catch { return iso; }
+  };
+
+  if (!user) return null;
+
+  return (
+    <div className="flex flex-col space-y-8 pb-10">
+
+      {/* Page header */}
+      <div>
+        <div className="flex items-center space-x-3 mb-2">
+          <SettingsIcon className="w-5 h-5 text-white" />
+          <h1 className="text-2xl sm:text-3xl font-light tracking-wide text-white">Settings</h1>
+        </div>
+        <p className="text-[11px] uppercase tracking-widest text-[#666]">
+          Account preferences & configuration
+        </p>
+      </div>
+
+      {/* Profile card */}
+      <div className="bg-[#0A0A0A] border border-[#222] rounded-2xl p-6 sm:p-8">
+        <p className="text-[10px] uppercase tracking-[0.25em] text-[#555] font-semibold mb-6">
+          Profile
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          {/* Avatar */}
+          {user.picture ? (
+            <img
+              src={user.picture}
+              alt={user.name}
+              className="w-20 h-20 rounded-full border-2 border-[#333] flex-shrink-0"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-[#111] border-2 border-[#333] flex items-center justify-center flex-shrink-0">
+              <User className="w-8 h-8 text-[#666]" />
+            </div>
+          )}
+
+          {/* Info */}
+          <div className="flex-1 space-y-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-[#555] mb-1">Full Name</p>
+              <p className="text-white font-semibold text-lg">{user.name}</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-[#050505] border border-[#1A1A1A] rounded-xl p-4 flex items-center space-x-3">
+                <Mail className="w-4 h-4 text-[#666] flex-shrink-0" />
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-[#555]">Email</p>
+                  <p className="text-sm text-white mt-0.5">{user.email}</p>
+                </div>
+              </div>
+              <div className="bg-[#050505] border border-[#1A1A1A] rounded-xl p-4 flex items-center space-x-3">
+                <Clock className="w-4 h-4 text-[#666] flex-shrink-0" />
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-[#555]">Member Since</p>
+                  <p className="text-sm text-white mt-0.5">{formatDate(user.createdAt)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Default location */}
+      <div className="bg-[#0A0A0A] border border-[#222] rounded-2xl p-6 sm:p-8">
+        <p className="text-[10px] uppercase tracking-[0.25em] text-[#555] font-semibold mb-2">
+          Default City
+        </p>
+        <p className="text-xs text-[#666] mb-6">
+          TraffixAI loads this city automatically on startup.
+        </p>
+
+        {/* Current default */}
+        {user.defaultCity && (
+          <div className="flex items-center space-x-2 bg-[#050505] border border-[#1A1A1A] rounded-xl px-4 py-3 mb-4">
+            <MapPin className="w-4 h-4 text-[#00E676] flex-shrink-0" />
+            <div>
+              <p className="text-[10px] text-[#555] uppercase tracking-widest">Current default</p>
+              <p className="text-sm text-white font-medium">{user.defaultCity}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Search new */}
+        <div className="relative">
+          <div className="absolute left-4 top-3.5 text-[#555]">
+            {searching
+              ? <Loader className="w-4 h-4 animate-spin" />
+              : <Search className="w-4 h-4" />
+            }
+          </div>
+          <input
+            type="text"
+            value={locQuery}
+            onChange={handleLocInput}
+            placeholder={user.defaultCity ? 'Change city...' : 'Search for your city...'}
+            className="w-full bg-[#050505] border border-[#222] rounded-xl pl-10 pr-4 py-3 text-white text-sm placeholder-[#444] focus:outline-none focus:border-white transition"
+            autoComplete="off"
+          />
+
+          {suggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0A0A0A] border border-[#222] rounded-xl shadow-2xl z-20 overflow-hidden">
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSelect(s)}
+                  className="w-full text-left px-4 py-3 hover:bg-[#111] transition border-b border-[#1A1A1A] last:border-b-0"
+                >
+                  <p className="text-sm font-semibold text-white">
+                    {s.name || s.display_name.split(',')[0]}
+                  </p>
+                  <p className="text-[11px] text-[#666] mt-0.5 truncate">{s.display_name}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {selected && !saved && (
+          <div className="mt-3 flex items-center justify-between bg-[#0A1A0A] border border-emerald-900/40 rounded-xl px-4 py-3">
+            <div className="flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm text-emerald-300">{selected.city}</span>
+            </div>
+            <button
+              onClick={handleSaveLocation}
+              disabled={saving}
+              className="text-xs font-semibold uppercase tracking-widest bg-white text-black px-4 py-1.5 rounded-lg hover:bg-[#E5E5E5] transition flex items-center space-x-1.5"
+            >
+              {saving && <Loader className="w-3 h-3 animate-spin" />}
+              <span>{saving ? 'Saving...' : 'Save'}</span>
+            </button>
+          </div>
+        )}
+
+        {saved && (
+          <div className="mt-3 flex items-center space-x-2 text-emerald-400 text-sm">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Default city updated successfully.</span>
+          </div>
+        )}
+      </div>
+
+      {/* Recent searches */}
+      <div className="bg-[#0A0A0A] border border-[#222] rounded-2xl p-6 sm:p-8">
+        <p className="text-[10px] uppercase tracking-[0.25em] text-[#555] font-semibold mb-6">
+          Recent Searches
+        </p>
+
+        {recentSearches.length === 0 ? (
+          <p className="text-sm text-[#555] italic">No searches yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {recentSearches.map((s, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between bg-[#050505] border border-[#1A1A1A] rounded-xl px-4 py-3"
+              >
+                <div className="flex items-center space-x-3">
+                  <History className="w-4 h-4 text-[#555] flex-shrink-0" />
+                  <span className="text-sm text-white">{s.city}</span>
+                </div>
+                <span className="text-[10px] text-[#555] font-mono">
+                  {s.searchedAt ? new Date(s.searchedAt).toLocaleDateString() : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Danger zone */}
+      <div className="bg-[#0A0A0A] border border-[#222] rounded-2xl p-6 sm:p-8">
+        <p className="text-[10px] uppercase tracking-[0.25em] text-[#555] font-semibold mb-6">
+          Account
+        </p>
+        <button
+          onClick={logout}
+          className="flex items-center space-x-2 px-5 py-3 rounded-xl bg-[#1A0505] border border-rose-900/50 text-rose-400 text-sm font-semibold hover:bg-[#2A0808] transition"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Sign Out</span>
+        </button>
+      </div>
+
+    </div>
+  );
+}
+
+export default Settings;

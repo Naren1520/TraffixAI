@@ -14,7 +14,7 @@ const LoginModal = ({ onClose, onSuccess }) => {
     const result = await loginWithGoogle(credentialResponse.credential);
     setBusy(false);
     if (result.success) {
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(result.firstLogin);
       else if (onClose) onClose();
     } else {
       setError(result.error || 'Sign-in failed. Please try again.');

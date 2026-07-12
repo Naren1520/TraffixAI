@@ -17,13 +17,10 @@ import java.util.Map;
 public class UserService {
 
     private final UserRepository userRepository;
-
     private static final int MAX_RECENT_SEARCHES = 10;
 
-    /**
-     * Creates a new user or updates their login timestamp if they already exist.
-     * Called every time a user successfully signs in with Google.
-     */
+    // ── Auth ───────────────────────────────────────────────────────────────────
+
     public User upsertUser(Map<String, Object> googleClaims) {
         String googleId = (String) googleClaims.get("sub");
         String email    = (String) googleClaims.get("email");
@@ -32,7 +29,6 @@ public class UserService {
 
         return userRepository.findByGoogleId(googleId)
                 .map(existing -> {
-                    // Update mutable fields on each login
                     existing.setName(name);
                     existing.setPicture(picture);
                     existing.setLastLoginAt(LocalDateTime.now());
@@ -45,6 +41,7 @@ public class UserService {
                             .name(name)
                             .picture(picture)
                             .recentSearches(new ArrayList<>())
+                            .firstLogin(true)   // will show location picker on frontend
                             .createdAt(LocalDateTime.now())
                             .lastLoginAt(LocalDateTime.now())
                             .build();
@@ -53,29 +50,40 @@ public class UserService {
                 });
     }
 
-    /**
-     * Returns the last MAX_RECENT_SEARCHES searches for a user, most recent first.
-     */
+    // ── Profile ────────────────────────────────────────────────────────────────
+
+    public User getProfile(String userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+    }
+
+    // ── Default location ───────────────────────────────────────────────────────
+
+    public User saveDefaultLocation(String userId, String city, double lat, double lng) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        user.setDefaultCity(city);
+        user.setDefaultLat(lat);
+        user.setDefaultLng(lng);
+        user.setFirstLogin(false); // clear the first-login flag once location is set
+        return userRepository.save(user);
+    }
+
+    // ── Recent searches ────────────────────────────────────────────────────────
+
     public List<User.RecentSearch> getRecentSearches(String userId) {
         return userRepository.findById(userId)
                 .map(User::getRecentSearches)
                 .orElse(List.of());
     }
 
-    /**
-     * Saves a new city search for the user.
-     * Deduplicates by city name (case-insensitive) and keeps the list capped.
-     */
     public List<User.RecentSearch> saveSearch(String userId, String city, double lat, double lng) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         List<User.RecentSearch> searches = new ArrayList<>(user.getRecentSearches());
-
-        // Remove any existing entry for the same city (case-insensitive) to avoid duplicates
         searches.removeIf(s -> s.getCity().equalsIgnoreCase(city));
-
-        // Add new search at the front
         searches.add(0, User.RecentSearch.builder()
                 .city(city)
                 .lat(lat)
@@ -83,7 +91,6 @@ public class UserService {
                 .searchedAt(LocalDateTime.now())
                 .build());
 
-        // Keep only the most recent N
         if (searches.size() > MAX_RECENT_SEARCHES) {
             searches = searches.subList(0, MAX_RECENT_SEARCHES);
         }

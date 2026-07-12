@@ -4,7 +4,7 @@ import { apiUrl } from '../api';
 
 const AuthContext = createContext(null);
 
-const JWT_KEY = 'traffixai_jwt';
+const JWT_KEY  = 'traffixai_jwt';
 const USER_KEY = 'traffixai_user';
 
 export const AuthProvider = ({ children }) => {
@@ -12,32 +12,26 @@ export const AuthProvider = ({ children }) => {
     try {
       const stored = localStorage.getItem(USER_KEY);
       return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   });
 
-  const [token, setToken] = useState(() => localStorage.getItem(JWT_KEY));
+  const [token, setToken]               = useState(() => localStorage.getItem(JWT_KEY));
   const [recentSearches, setRecentSearches] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]           = useState(false);
 
-  // Attach JWT to all axios requests when available
+  // Attach JWT to all axios requests
   useEffect(() => {
-    const interceptor = axios.interceptors.request.use((config) => {
+    const id = axios.interceptors.request.use((config) => {
       const jwt = localStorage.getItem(JWT_KEY);
-      if (jwt) {
-        config.headers['Authorization'] = `Bearer ${jwt}`;
-      }
+      if (jwt) config.headers['Authorization'] = `Bearer ${jwt}`;
       return config;
     });
-    return () => axios.interceptors.request.eject(interceptor);
+    return () => axios.interceptors.request.eject(id);
   }, []);
 
   // Load recent searches once logged in
   useEffect(() => {
-    if (user && token) {
-      fetchRecentSearches();
-    }
+    if (user && token) fetchRecentSearches();
   }, [user, token]);
 
   const fetchRecentSearches = async () => {
@@ -49,31 +43,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Called after Google sign-in succeeds on the frontend.
-   * Sends the Google ID token to our backend for verification + JWT issuance.
-   */
   const loginWithGoogle = useCallback(async (googleIdToken) => {
     setLoading(true);
     try {
       const res = await axios.post(apiUrl('/api/auth/google'), { idToken: googleIdToken });
       const { token: jwt, user: userData } = res.data;
 
-      localStorage.setItem(JWT_KEY, jwt);
+      localStorage.setItem(JWT_KEY,  jwt);
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
       setToken(jwt);
       setUser(userData);
 
-      // Fetch searches in the background — don't block login success on this
+      // Background fetch of recent searches
       axios.get(apiUrl('/api/user/searches'), {
         headers: { Authorization: `Bearer ${jwt}` }
-      }).then(searchRes => {
-        setRecentSearches(searchRes.data);
-      }).catch(err => {
-        console.warn('Could not fetch recent searches after login:', err);
-      });
+      }).then(r => setRecentSearches(r.data))
+        .catch(() => {});
 
-      return { success: true };
+      return { success: true, firstLogin: userData.firstLogin };
     } catch (err) {
       console.error('Login failed:', err);
       return { success: false, error: err.response?.data?.error || 'Login failed' };
@@ -91,11 +78,33 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * Saves a city search to the backend and updates local state.
-   * Call this whenever the user searches for a city on the Dashboard.
+   * Saves the user's default city to the backend and updates local state.
+   * Called from DefaultLocationModal and Settings page.
    */
+  const updateDefaultLocation = useCallback(async (city, lat, lng) => {
+    try {
+      const res = await axios.put(apiUrl('/api/user/default-location'), { city, lat, lng });
+      // Patch local user state — clear firstLogin flag, set default location
+      setUser(prev => {
+        const updated = {
+          ...prev,
+          defaultCity: res.data.defaultCity,
+          defaultLat:  res.data.defaultLat,
+          defaultLng:  res.data.defaultLng,
+          firstLogin:  false,
+        };
+        localStorage.setItem(USER_KEY, JSON.stringify(updated));
+        return updated;
+      });
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to save default location:', err);
+      return { success: false };
+    }
+  }, []);
+
   const saveSearch = useCallback(async (city, lat, lng) => {
-    if (!user) return; // not logged in, silently skip
+    if (!user) return;
     try {
       const res = await axios.post(apiUrl('/api/user/searches'), { city, lat, lng });
       setRecentSearches(res.data);
@@ -113,6 +122,7 @@ export const AuthProvider = ({ children }) => {
       loginWithGoogle,
       logout,
       saveSearch,
+      updateDefaultLocation,
       isLoggedIn: !!user,
     }}>
       {children}

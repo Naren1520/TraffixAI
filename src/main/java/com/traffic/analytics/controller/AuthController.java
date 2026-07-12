@@ -52,10 +52,14 @@ public class AuthController {
             return ResponseEntity.ok(Map.of(
                     "token", jwt,
                     "user", Map.of(
-                            "id",      user.getId(),
-                            "email",   user.getEmail(),
-                            "name",    user.getName(),
-                            "picture", user.getPicture() != null ? user.getPicture() : ""
+                            "id",          user.getId(),
+                            "email",       user.getEmail(),
+                            "name",        user.getName(),
+                            "picture",     user.getPicture() != null ? user.getPicture() : "",
+                            "firstLogin",  user.isFirstLogin(),
+                            "defaultCity", user.getDefaultCity() != null ? user.getDefaultCity() : "",
+                            "defaultLat",  user.getDefaultLat() != null ? user.getDefaultLat() : 0.0,
+                            "defaultLng",  user.getDefaultLng() != null ? user.getDefaultLng() : 0.0
                     )
             ));
 

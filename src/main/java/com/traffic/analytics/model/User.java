@@ -34,6 +34,15 @@ public class User {
     @Builder.Default
     private List<RecentSearch> recentSearches = new ArrayList<>();
 
+    // Default city set by user in Settings
+    private String defaultCity;
+    private Double defaultLat;
+    private Double defaultLng;
+
+    // True on first login — cleared after user sets their default location
+    @Builder.Default
+    private boolean firstLogin = true;
+
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
 

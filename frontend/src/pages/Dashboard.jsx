@@ -11,18 +11,21 @@ import { useAuth } from '../context/AuthContext';
 import { apiUrl, wsUrl } from '../api';
 
 function Dashboard() {
-  const { updateCity } = useContext(CityContext);
+  const { updateCity, selectedCity, coordinates } = useContext(CityContext);
   const { saveSearch, recentSearches } = useAuth();
   const [trafficData, setTrafficData] = useState([]);
   const [topRoads, setTopRoads] = useState([]);
-  const [leastRoads, setLeastRoads] = useState([]); // Free flow state
+  const [leastRoads, setLeastRoads] = useState([]);
   const [peakHour, setPeakHour] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [mapCenter, setMapCenter] = useState([74.8427, 12.8711]); // Default Mangaluru
-  const [currentCity, setCurrentCity] = useState('Mangalore'); // Default current city
-  const currentCityRef = useRef(currentCity); // Ref to avoid stale closure in WebSocket
+  // Init from CityContext — which reads user's default location on boot
+  const [mapCenter, setMapCenter] = useState(
+    [coordinates?.lng ?? 74.8427, coordinates?.lat ?? 12.8711]
+  );
+  const [currentCity, setCurrentCity] = useState(selectedCity || 'Mangalore');
+  const currentCityRef = useRef(currentCity);
 
   useEffect(() => {
     currentCityRef.current = currentCity;
