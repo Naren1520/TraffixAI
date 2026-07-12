@@ -7,15 +7,21 @@ import { AlertCircle, Car, Activity, MapPin } from 'lucide-react';
 import Header from '../../components/layout/Header';
 import TomTomMap from '../../components/map/TomTomMap';
 import DashboardSkeleton from './DashboardSkeleton';
+import OnboardingBanner from '../../components/common/OnboardingBanner';
 import { CityContext } from '../../context/CityContext';
 import { useAuth } from '../../context/AuthContext';
 import { apiUrl, wsUrl } from '../../api';
 
+const ONBOARDING_KEY = 'traffixai_onboarding_done';
+
 function Dashboard() {
   const { updateCity, selectedCity, coordinates } = useContext(CityContext);
   const { saveSearch } = useAuth();
-  const [pageLoading, setPageLoading] = useState(true);
-  const [trafficData, setTrafficData] = useState([]);
+  const [pageLoading, setPageLoading]   = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem(ONBOARDING_KEY)
+  );
+  const [trafficData, setTrafficData]   = useState([]);
   const [topRoads, setTopRoads] = useState([]);
   const [leastRoads, setLeastRoads] = useState([]);
   const [peakHour, setPeakHour] = useState(null);
@@ -85,12 +91,18 @@ function Dashboard() {
     });
   };
 
+  const dismissOnboarding = () => {
+    localStorage.setItem(ONBOARDING_KEY, '1');
+    setShowOnboarding(false);
+  };
+
   const toggleMonitoring = async () => {
     try {
       if (isMonitoring) {
         await axios.post(apiUrl('/api/live/stop'));
       } else {
         await axios.post(apiUrl('/api/live/start'));
+        dismissOnboarding(); // user started the feed — hide the guide
       }
       setIsMonitoring(!isMonitoring);
     } catch (e) {
@@ -131,7 +143,7 @@ function Dashboard() {
       setCurrentCity(cityName);
       setMapCenter([parseFloat(lon), parseFloat(lat)]);
 
-      // Save to user's recent searches (no-op if not logged in)
+      dismissOnboarding(); // user searched a city — hide the guide
       saveSearch(cityName, parseFloat(lat), parseFloat(lon));
 
       // Notify the Java Backend to start pinging real traffic data for this new location
@@ -160,6 +172,10 @@ function Dashboard() {
         <DashboardSkeleton />
       ) : (
         <>
+        {/* Onboarding nudge — shown only on first visit, dismissed on search or start feed */}
+        {showOnboarding && (
+          <OnboardingBanner onDismiss={dismissOnboarding} />
+        )}
 
       {/* Top Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

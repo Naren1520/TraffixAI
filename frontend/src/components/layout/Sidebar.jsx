@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Navigation, AlertTriangle, HelpCircle, Menu, X, Settings } from 'lucide-react';
+import { LayoutDashboard, Navigation, AlertTriangle, HelpCircle, X, Settings, Scale, Shield, FileText, ChevronRight } from 'lucide-react';
 import UserMenu from './UserMenu';
 
-const Sidebar = ({ onLoginClick }) => {
+const Sidebar = ({ onLoginClick, isOpen, onOpen, onClose }) => {
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
+  const [legalOpen, setLegalOpen] = useState(false);
 
   const links = [
     { name: 'Dashboard',      path: '/',                icon: LayoutDashboard },
@@ -13,6 +13,11 @@ const Sidebar = ({ onLoginClick }) => {
     { name: 'Incident Center',path: '/incident-center', icon: AlertTriangle },
     { name: 'Settings',       path: '/settings',        icon: Settings },
     { name: 'Help',           path: '/help',            icon: HelpCircle },
+  ];
+
+  const legalLinks = [
+    { name: 'Privacy Policy',   path: '/privacy-policy',   icon: Shield },
+    { name: 'Terms of Service', path: '/terms-of-service', icon: FileText },
   ];
 
   const sidebarContent = (
@@ -30,7 +35,7 @@ const Sidebar = ({ onLoginClick }) => {
         {/* Close button — mobile only */}
         <button
           className="md:hidden text-[#888] hover:text-white transition p-1"
-          onClick={() => setIsOpen(false)}
+          onClick={onClose}
           aria-label="Close menu"
         >
           <X className="w-5 h-5" />
@@ -46,7 +51,7 @@ const Sidebar = ({ onLoginClick }) => {
             <NavLink
               key={idx}
               to={link.disabled ? '#' : link.path}
-              onClick={() => setIsOpen(false)}
+              onClick={() => { onClose(); }}
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 font-medium text-sm ${
                 isActive
                   ? 'bg-white text-black shadow-sm'
@@ -58,11 +63,53 @@ const Sidebar = ({ onLoginClick }) => {
             </NavLink>
           );
         })}
+
+        {/* Legal flyout */}
+        <div className="relative">
+          <button
+            onClick={() => setLegalOpen(v => !v)}
+            className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-300 font-medium text-sm ${
+              legalOpen
+                ? 'bg-[#1A1A1A] text-white'
+                : 'text-[#888] hover:bg-[#1A1A1A] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <Scale className="w-5 h-5" />
+              <span>Legal</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${legalOpen ? 'rotate-90' : ''}`} />
+          </button>
+
+          {legalOpen && (
+            <div className="mt-1 ml-4 pl-4 border-l border-[#222] space-y-1">
+              {legalLinks.map((link, idx) => {
+                const Icon = link.icon;
+                const isActive = location.pathname === link.path;
+                return (
+                  <NavLink
+                    key={idx}
+                    to={link.path}
+                    onClick={() => { onClose(); }}
+                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm ${
+                      isActive
+                        ? 'bg-white text-black'
+                        : 'text-[#666] hover:bg-[#1A1A1A] hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span>{link.name}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="p-6 space-y-4">
         {/* User account / sign in */}
-        <UserMenu onLoginClick={() => { onLoginClick(); setIsOpen(false); }} />
+        <UserMenu onLoginClick={() => { onLoginClick(); onClose(); }} />
 
         <div className="bg-[#1A1A1A] p-4 rounded-xl border border-[#2A2A2A]">
           <div className="w-2 h-2 bg-[#00E676] rounded-full animate-pulse mb-2"></div>
@@ -75,20 +122,11 @@ const Sidebar = ({ onLoginClick }) => {
 
   return (
     <>
-      {/* Hamburger button — mobile only */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-[60] bg-[#0F0F0F] border border-[#222] text-white p-2.5 rounded-lg shadow-lg"
-        onClick={() => setIsOpen(true)}
-        aria-label="Open menu"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
-
       {/* Mobile overlay backdrop */}
       {isOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[55]"
-          onClick={() => setIsOpen(false)}
+          onClick={onClose}
         />
       )}
 

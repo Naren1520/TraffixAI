@@ -9,7 +9,10 @@ import RouteAnalyzer from './pages/RouteAnalyzer';
 import IncidentCenter from './pages/IncidentCenter';
 import Help from './pages/Help';
 import Settings from './pages/Settings';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import Sidebar from './components/layout/Sidebar';
+import MobileTopBar from './components/layout/MobileTopBar';
 import Loader from './components/common/Loader';
 import LoginModal from './components/modals/LoginModal';
 import DefaultLocationModal from './components/modals/DefaultLocationModal';
@@ -23,6 +26,7 @@ function AppShell() {
   // phase: 'loading' → 'login' → 'location' (first-login only) → 'app'
   const [phase, setPhase]         = useState('loading');
   const [showLogin, setShowLogin] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLoaderComplete = () => {
     if (isLoggedIn) {
@@ -64,21 +68,29 @@ function AppShell() {
   return (
     <Router>
       <div className="flex bg-[#050505] min-h-screen text-[#E5E5E5] font-sans selection:bg-white selection:text-black">
-        <Sidebar onLoginClick={() => setShowLogin(true)} />
-        <main className="flex-1 ml-0 md:ml-64 min-h-screen bg-[#050505]">
-          <div className="p-4 sm:p-6 lg:p-8 pt-16 md:pt-8 max-w-[1600px] mx-auto animate-[fadeIn_0.5s_ease-out_forwards]">
+        <Sidebar
+          onLoginClick={() => setShowLogin(true)}
+          isOpen={sidebarOpen}
+          onOpen={() => setSidebarOpen(true)}
+          onClose={() => setSidebarOpen(false)}
+        />
+        <main className="flex-1 ml-0 md:ml-64 min-h-screen bg-[#050505] flex flex-col">
+          {/* Mobile-only top bar — replaces the floating hamburger */}
+          <MobileTopBar onMenuOpen={() => setSidebarOpen(true)} />
+          <div className="p-4 sm:p-6 lg:p-8 md:pt-8 max-w-[1600px] mx-auto w-full animate-[fadeIn_0.5s_ease-out_forwards]">
             <Routes>
               <Route path="/"                element={<Dashboard />} />
               <Route path="/route-analyzer"  element={<RouteAnalyzer />} />
               <Route path="/incident-center" element={<IncidentCenter />} />
               <Route path="/settings"        element={<Settings />} />
               <Route path="/help"            element={<Help />} />
+              <Route path="/privacy-policy"  element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
             </Routes>
           </div>
         </main>
       </div>
 
-      {/* Re-login modal triggered from sidebar UserMenu */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </Router>
   );
