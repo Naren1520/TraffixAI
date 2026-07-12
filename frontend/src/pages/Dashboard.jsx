@@ -96,38 +96,49 @@ function Dashboard() {
 
   const handleLocationSearch = async (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+
+    // Support direct override from suggestion click — bypasses Nominatim lookup
+    const override = e._override;
+    const query = override?.query || searchQuery;
+    if (!query.trim()) return;
 
     try {
-      // Using OpenStreetMap Nominatim for free geocoding to avoid TomTom API 403 Forbidden errors
-      const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`);
-      
-      if (response.data && response.data.length > 0) {
-        const { lat, lon } = response.data[0];
-        
-        // Format the user's exact search string nicely (e.g. "banglore" -> "Banglore") 
-        // instead of relying on OpenStreetMap's arbitrary internal subdivision names
-        const rawSearch = searchQuery.trim();
-        const cityName = rawSearch.charAt(0).toUpperCase() + rawSearch.slice(1).toLowerCase();
-        
-        setCurrentCity(cityName);
-        setMapCenter([parseFloat(lon), parseFloat(lat)]);
+      let lat, lon;
 
-        // Save to user's recent searches (no-op if not logged in)
-        saveSearch(cityName, parseFloat(lat), parseFloat(lon));
-
-        // Notify the Java Backend to start pinging real traffic data for this new location!
-        await axios.post(apiUrl(`/api/live/location?name=${encodeURIComponent(cityName)}&lat=${lat}&lon=${lon}`));
-        
-        // Fetch new initial data specifically for this city
-        fetchInitialData(cityName);
-        
+      if (override?.lat && override?.lon) {
+        // Suggestion was already geocoded — use coords directly
+        lat = override.lat;
+        lon = override.lon;
       } else {
-        alert("Location not found. Please try a different search.");
+        // Manual typed search — geocode via Nominatim
+        const response = await axios.get(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`
+        );
+        if (!response.data || response.data.length === 0) {
+          alert('Location not found. Please try a different search.');
+          return;
+        }
+        lat = response.data[0].lat;
+        lon = response.data[0].lon;
       }
+
+      const cityName = query.trim().charAt(0).toUpperCase() + query.trim().slice(1).toLowerCase();
+
+      setCurrentCity(cityName);
+      setMapCenter([parseFloat(lon), parseFloat(lat)]);
+
+      // Save to user's recent searches (no-op if not logged in)
+      saveSearch(cityName, parseFloat(lat), parseFloat(lon));
+
+      // Notify the Java Backend to start pinging real traffic data for this new location
+      await axios.post(apiUrl(`/api/live/location?name=${encodeURIComponent(cityName)}&lat=${lat}&lon=${lon}`));
+
+      // Fetch new initial data specifically for this city
+      fetchInitialData(cityName);
+
     } catch (error) {
-      console.error("Geocoding Error:", error);
-      alert("Error searching for location.");
+      console.error('Geocoding Error:', error);
+      alert('Error searching for location.');
     }
   };
 
