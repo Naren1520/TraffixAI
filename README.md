@@ -414,6 +414,6 @@ You are welcome to use, study, modify, and contribute to this project under the 
 
 - Email: narensonu1520@gmail.com
 - Phone: 8296833381
-- LinkedIn: [linkedin.com/in/naren-sj](https://linkedin.com/in/naren-sj)
+- LinkedIn: [linkedin.com/in/narensj20](https://www.linkedin.com/in/narensj20/)
 
 Built as a showcase of full-stack engineering across real-time systems, cloud deployment, multi-user auth, and production-quality UI patterns. Contributions and feedback are genuinely welcome.
