@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import tt from '@tomtom-international/web-sdk-maps';
 import '@tomtom-international/web-sdk-maps/dist/maps.css';
 
-const TomTomMap = ({ center }) => {
+const TomTomMap = ({ center, hideHeader = false }) => {
     const mapElement = useRef();
     const [mapInstance, setMapInstance] = useState(null);
 
@@ -74,12 +74,14 @@ const TomTomMap = ({ center }) => {
     }, [center, mapInstance]);
 
     return (
-        <div className="bg-[#1a1a1a]/80 p-4 sm:p-6 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl h-full min-h-[300px] sm:min-h-[400px] flex flex-col">
-            <h3 className="text-xl font-bold mb-4 flex items-center space-x-2 text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#69f0ae]"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              <span>Live Geographic Monitoring</span>
-            </h3>
-            <div ref={mapElement} className="w-full grow rounded-xl overflow-hidden shadow-2xl border border-[#333333]/50" style={{ minHeight: '280px', touchAction: 'manipulation' }} />
+        <div className={`bg-[#1a1a1a]/80 rounded-2xl border border-[#2a2a2a] backdrop-blur-xl h-full flex flex-col ${hideHeader ? '' : 'p-4 sm:p-6 min-h-[300px] sm:min-h-[400px]'}`}>
+            {!hideHeader && (
+              <h3 className="text-xl font-bold mb-4 flex items-center space-x-2 text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#69f0ae]"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>Live Geographic Monitoring</span>
+              </h3>
+            )}
+            <div ref={mapElement} className="w-full grow rounded-xl overflow-hidden shadow-2xl border border-[#333333]/50" style={{ minHeight: hideHeader ? '100%' : '280px', touchAction: 'manipulation' }} />
         </div>
     );
 };

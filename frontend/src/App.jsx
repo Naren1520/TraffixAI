@@ -74,7 +74,7 @@ function AppShell() {
           onOpen={() => setSidebarOpen(true)}
           onClose={() => setSidebarOpen(false)}
         />
-        <main className="flex-1 ml-0 md:ml-64 min-h-screen bg-[#050505] flex flex-col">
+        <main className="flex-1 ml-0 md:ml-64 min-h-screen bg-[#050505] flex flex-col overscroll-none">
           {/* Mobile-only top bar — replaces the floating hamburger */}
           <MobileTopBar onMenuOpen={() => setSidebarOpen(true)} />
           <div className="p-4 sm:p-6 lg:p-8 md:pt-8 max-w-[1600px] mx-auto w-full animate-[fadeIn_0.5s_ease-out_forwards]">
