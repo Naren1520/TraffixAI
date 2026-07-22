@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { Navigation, AlertCircle, CheckCircle2, AlertTriangle, Zap, Route } from 'lucide-react';
 import RouteSearch from '../../components/route/RouteSearch';
@@ -7,16 +7,90 @@ import RouteMap from '../../components/map/RouteMap';
 import RouteAnalyzerSkeleton from './RouteAnalyzerSkeleton';
 import { apiUrl } from '../../api';
 
+const ROUTE_ANALYZER_STATE_KEY = 'traffixai_route_analyzer_state';
+
+function formatMinutesAsHours(minutes) {
+  const total = Math.round(minutes);
+  if (total < 60) {
+    return `${total} min`;
+  }
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
+  return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`;
+}
+
+function readStoredAnalysis() {
+  try {
+    const stored = localStorage.getItem(ROUTE_ANALYZER_STATE_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function getSelectedRoute(routeData, selectedRouteId) {
+  if (!routeData) return null;
+
+  if (selectedRouteId) {
+    const matchedRoute = routeData.routes?.find((route) => route.routeId === selectedRouteId);
+    if (matchedRoute) return matchedRoute;
+
+    if (routeData.bestRoute?.routeId === selectedRouteId) {
+      return routeData.bestRoute;
+    }
+  }
+
+  return routeData.bestRoute || null;
+}
+
 function RouteAnalyzer() {
-  const [startLocation, setStartLocation] = useState('');
-  const [endLocation, setEndLocation] = useState('');
-  const [startCoords, setStartCoords] = useState(null);
-  const [endCoords, setEndCoords] = useState(null);
-  const [routeData, setRouteData] = useState(null);
+  const storedAnalysis = readStoredAnalysis();
+  const [startLocation, setStartLocation] = useState(storedAnalysis?.startLocation ?? '');
+  const [endLocation, setEndLocation] = useState(storedAnalysis?.endLocation ?? '');
+  const [startCoords, setStartCoords] = useState(storedAnalysis?.startCoords ?? null);
+  const [endCoords, setEndCoords] = useState(storedAnalysis?.endCoords ?? null);
+  const [routeData, setRouteData] = useState(storedAnalysis?.routeData ?? null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [selectedRoute, setSelectedRoute] = useState(null);
+  const [error, setError] = useState(storedAnalysis?.error ?? null);
+  const [selectedRoute, setSelectedRoute] = useState(() =>
+    getSelectedRoute(storedAnalysis?.routeData ?? null, storedAnalysis?.selectedRouteId ?? null)
+  );
   const mapRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const hasPersistedContent =
+        startLocation ||
+        endLocation ||
+        startCoords ||
+        endCoords ||
+        routeData ||
+        error;
+
+      if (!hasPersistedContent) {
+        localStorage.removeItem(ROUTE_ANALYZER_STATE_KEY);
+        return;
+      }
+
+      localStorage.setItem(
+        ROUTE_ANALYZER_STATE_KEY,
+        JSON.stringify({
+          startLocation,
+          endLocation,
+          startCoords,
+          endCoords,
+          routeData,
+          selectedRouteId: selectedRoute?.routeId ?? routeData?.bestRoute?.routeId ?? null,
+          error,
+        })
+      );
+    } catch {
+      // Ignore storage failures and keep the analyzer usable.
+    }
+  }, [startLocation, endLocation, startCoords, endCoords, routeData, selectedRoute, error]);
 
   const handleSearch = async (start, end, startLat, startLon, endLat, endLon) => {
     setStartLocation(start);
@@ -41,6 +115,7 @@ function RouteAnalyzer() {
       if (response.data.bestRoute) {
         setSelectedRoute(response.data.bestRoute);
       }
+      setError(null);
     } catch (err) {
       setError('Failed to analyze route. Please try again.');
       console.error(err);
@@ -100,11 +175,11 @@ function RouteAnalyzer() {
                 </div>
                 <div className="bg-[#0A0A0A] p-4 rounded-xl border border-[#222]">
                   <p className="text-[10px] uppercase tracking-widest text-[#666] mb-1">Est. Time</p>
-                  <p className="text-xl font-light text-white">{routeData.bestRoute.estimatedTime.toFixed(0)} <span className="text-xs text-[#555] font-mono">MIN</span></p>
+                  <p className="text-xl font-light text-white">{formatMinutesAsHours(routeData.bestRoute.estimatedTime)}</p>
                 </div>
                 <div className="bg-[#0A0A0A] p-4 rounded-xl border border-[#222]">
                   <p className="text-[10px] uppercase tracking-widest text-[#666] mb-1">Delay</p>
-                  <p className="text-xl font-light text-white">{routeData.bestRoute.estimatedDelay.toFixed(0)} <span className="text-xs text-[#555] font-mono">MIN</span></p>
+                  <p className="text-xl font-light text-white">{formatMinutesAsHours(routeData.bestRoute.estimatedDelay)}</p>
                 </div>
                 <div className="bg-[#0A0A0A] p-4 rounded-xl border border-[#222]">
                   <p className="text-[10px] uppercase tracking-widest text-[#666] mb-1">Score</p>

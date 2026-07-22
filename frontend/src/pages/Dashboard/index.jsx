@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import axios from 'axios';
 import { Stomp } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -43,6 +43,22 @@ function Dashboard() {
     // Update global city context whenever dashboard city changes
     // Using a debounce-like approach to prevent infinite loops
     updateCity(currentCity, { lat: mapCenter[1], lng: mapCenter[0], radius: 0.08 });
+  }, [currentCity, mapCenter]);
+
+  useEffect(() => {
+    const syncLiveLocation = async () => {
+      if (!currentCity || mapCenter.length < 2) return;
+
+      try {
+        await axios.post(
+          apiUrl(`/api/live/location?name=${encodeURIComponent(currentCity)}&lat=${mapCenter[1]}&lon=${mapCenter[0]}`)
+        );
+      } catch (e) {
+        console.error('Failed to sync live monitoring location:', e);
+      }
+    };
+
+    syncLiveLocation();
   }, [currentCity, mapCenter]);
 
   useEffect(() => {

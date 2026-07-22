@@ -1,6 +1,16 @@
 ﻿import React from 'react';
 import { Clock, MapPin, TrendingUp, Award, BarChart3, AlertCircle } from 'lucide-react';
 
+function formatMinutesAsHours(minutes) {
+  const total = Math.round(minutes);
+  if (total < 60) {
+    return `${total} min`;
+  }
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
+  return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`;
+}
+
 function RouteDetails({ routes, selectedRoute, onSelectRoute }) {
   const getCongestionColor = (level) => {
     if (level === 'HIGH') return 'text-rose-500 bg-rose-500/5 border-rose-500/20';
@@ -57,7 +67,7 @@ function RouteDetails({ routes, selectedRoute, onSelectRoute }) {
               </div>
               <div className="bg-[#111] border border-[#222] p-3 flex justify-between items-center">
                 <span className="text-[10px] text-[#666] tracking-widest uppercase font-semibold">Time</span>
-                <span className="font-light text-white text-sm">{route.estimatedTime.toFixed(0)} <span className="text-[#555] text-[10px]">m</span></span>
+                <span className="font-light text-white text-sm">{formatMinutesAsHours(route.estimatedTime)}</span>
               </div>
             </div>
 
@@ -81,10 +91,9 @@ function RouteDetails({ routes, selectedRoute, onSelectRoute }) {
               {getCongestionIcon(route.congestionLevel)}
               <span>{route.congestionLevel} Density</span>
               {route.estimatedDelay > 0 && (
-                <span className="ml-auto opacity-70">+{route.estimatedDelay.toFixed(0)}m Delay</span>
+                <span className="ml-auto opacity-70">+{formatMinutesAsHours(route.estimatedDelay)} Delay</span>
               )}
             </div>
-
           </button>
         ))}
       </div>

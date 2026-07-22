@@ -1,16 +1,47 @@
-﻿import React, { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Search, MapPin, ArrowRight } from 'lucide-react';
 
+const ROUTE_SEARCH_DRAFT_KEY = 'traffixai_route_search_draft';
+
+function readStoredDraft() {
+  try {
+    const stored = localStorage.getItem(ROUTE_SEARCH_DRAFT_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function RouteSearch({ onSearch, loading }) {
-  const [startInput, setStartInput] = useState('');
-  const [endInput, setEndInput] = useState('');
+  const storedDraft = readStoredDraft();
+  const [startInput, setStartInput] = useState(storedDraft?.startInput ?? '');
+  const [endInput, setEndInput] = useState(storedDraft?.endInput ?? '');
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [endSuggestions, setEndSuggestions] = useState([]);
-  const [selectedStart, setSelectedStart] = useState(null);
-  const [selectedEnd, setSelectedEnd] = useState(null);
+  const [selectedStart, setSelectedStart] = useState(storedDraft?.selectedStart ?? null);
+  const [selectedEnd, setSelectedEnd] = useState(storedDraft?.selectedEnd ?? null);
   const [showStartSuggestions, setShowStartSuggestions] = useState(false);
   const [showEndSuggestions, setShowEndSuggestions] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        ROUTE_SEARCH_DRAFT_KEY,
+        JSON.stringify({
+          startInput,
+          endInput,
+          selectedStart,
+          selectedEnd,
+        })
+      );
+    } catch {
+      // Ignore storage failures and keep the form usable.
+    }
+  }, [startInput, endInput, selectedStart, selectedEnd]);
 
   const searchLocation = async (query) => {
     if (query.length < 2) return [];
